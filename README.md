@@ -1,59 +1,49 @@
-# Focus — Minimalist Apple-Inspired Task App ✦
+# Focus To-Do App
 
-A fast, beautifully animated, full-stack To-Do application built with **React**, **Tailwind CSS**, **Framer Motion**, and **Supabase**.
+A task management web application built with React, TypeScript, Tailwind CSS, Framer Motion, and Supabase.
 
-![Focus App Interface](https://img.shields.io/badge/Design-Apple%20SF%20Pro-0071E3?style=flat-square)
-![Stack](https://img.shields.io/badge/Stack-React%20%7C%20TypeScript%20%7C%20Tailwind%20%7C%20Supabase-0071E3?style=flat-square)
+## Features
 
----
+- **Task Management:** Add, complete, filter, and delete tasks.
+- **Inline Notes:** Add and edit notes attached to each task.
+- **Due Dates:** Assign due dates with quick shortcuts (Today, Tomorrow, Next Week, or custom date) and overdue indicators.
+- **Drag-and-Drop Reordering:** Reorder tasks by dragging them into position.
+- **User Authentication:** Multi-user support with registration and login powered by Supabase Auth.
+- **Database Storage:** Tasks are stored in Supabase PostgreSQL with Row Level Security (RLS) ensuring each user accesses only their own data.
 
-## ✨ Features
-
-- 🍏 **Apple-Inspired Design:** Soft monochrome palette (`#F5F5F7`), stark typography, glassmorphic headers (`backdrop-blur-xl`), and crisp white card containers.
-- ⚡ **Fluid Spring Motion:** Apple-like spring physics (`stiffness: 400, damping: 30`) using Framer Motion for smooth mounting, deleting, checking, and tab transitions.
-- 🖐️ **Drag & Drop Reordering:** Reorder tasks fluidly with drag-and-drop powered by Framer Motion `Reorder`.
-- 📝 **Inline Task Notes:** Expandable note panel per task with auto-save.
-- 📅 **Smart Due Dates & Overdue Chips:** Assign due dates with quick shortcuts (*Today*, *Tomorrow*, *Next week*, *Custom picker*). Overdue items highlighted with a red badge.
-- 🔐 **Multi-User Auth (Supabase):** Secure user registration & login powered by Supabase Auth with Row Level Security (RLS).
-- ☁️ **Cloud Database:** Real-time persistence with Supabase PostgreSQL database.
-
----
-
-## 🚀 Tech Stack
+## Tech Stack
 
 - **Frontend:** React 18, TypeScript, Vite
-- **Styling:** Tailwind CSS (v4), Lucide Icons
-- **Animation:** Framer Motion
-- **Backend & DB:** Supabase Auth & PostgreSQL
+- **Styling & Motion:** Tailwind CSS, Framer Motion, Lucide React
+- **Backend & Database:** Supabase Auth, PostgreSQL
 
----
+## Getting Started
 
-## 🛠️ Setup Instructions
+### 1. Clone the Repository
 
-### 1. Clone the repository
 ```bash
-git clone https://github.com/YOUR_USERNAME/focus-todo-app.git
-cd focus-todo-app
+git clone https://github.com/Jagmohan27/focus-todo.git
+cd focus-todo
 ```
 
-### 2. Install dependencies
+### 2. Install Dependencies
+
 ```bash
 npm install
 ```
 
-### 3. Configure Supabase Environment Variables
-Copy `.env.example` to `.env`:
-```bash
-cp .env.example .env
-```
-Open `.env` and fill in your Supabase project credentials (from **Supabase Dashboard ➔ Project Settings ➔ API**):
+### 3. Configure Environment Variables
+
+Create a `.env` file in the root directory:
+
 ```env
 VITE_SUPABASE_URL=https://your-project-id.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key-here
+VITE_SUPABASE_ANON_KEY=your-anon-public-key
 ```
 
-### 4. Database Setup (Supabase SQL Editor)
-Run the following SQL snippet in your **Supabase SQL Editor** to create the `todos` table with Row Level Security:
+### 4. Database Setup
+
+Run the following SQL in the Supabase SQL Editor to create the required table and policies:
 
 ```sql
 create table public.todos (
@@ -76,16 +66,16 @@ create policy "Users manage their own todos"
 create index todos_user_id_idx on public.todos(user_id);
 ```
 
-*Note: In your Supabase Dashboard under **Authentication ➔ Providers ➔ Email**, ensure **Confirm Email** is turned OFF for seamless signup.*
+In Supabase Dashboard under **Authentication -> Providers -> Email**, disable **Confirm email** for instant registration.
 
-### 5. Run the app locally
+### 5. Run the Application
+
 ```bash
 npm run dev
 ```
-Open [http://localhost:5173](http://localhost:5173) in your browser.
 
----
+Open `http://localhost:5173` in your browser.
 
-## 📄 License
+## License
 
-MIT License. Free to use and customize!
+MIT
