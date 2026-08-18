@@ -6,20 +6,17 @@ import App from './App'
 import AuthScreen from './AuthScreen'
 import { getCurrentUser } from './auth'
 import { supabase } from './supabase'
-import type { User } from './types'
 
 function Root() {
-  const [user,    setUser]    = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)   // checking session on mount
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  // On first load — restore session from Supabase
   useEffect(() => {
     getCurrentUser().then((u) => {
       setUser(u)
       setLoading(false)
     })
 
-    // Keep in sync if tab regains focus / session expires
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) setUser(null)
     })
@@ -42,15 +39,23 @@ function Root() {
   return (
     <AnimatePresence mode="wait">
       {user ? (
-        <motion.div key={`app-${user.id}`}
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}>
+        <motion.div
+          key={`app-${user.id}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
           <App user={user} onLogout={() => setUser(null)} />
         </motion.div>
       ) : (
-        <motion.div key="auth"
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}>
+        <motion.div
+          key="auth"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+        >
           <AuthScreen onAuth={(u) => setUser(u)} />
         </motion.div>
       )}
@@ -58,7 +63,7 @@ function Root() {
   )
 }
 
-createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Root />
   </StrictMode>

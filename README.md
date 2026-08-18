@@ -1,6 +1,6 @@
 # Focus To-Do App
 
-A task management web application built with React, TypeScript, Tailwind CSS, Framer Motion, and Supabase.
+A task management web application built with JavaScript, React, Tailwind CSS, Framer Motion, and Supabase.
 
 ## Features
 
@@ -13,7 +13,7 @@ A task management web application built with React, TypeScript, Tailwind CSS, Fr
 
 ## Tech Stack
 
-- **Frontend:** React 18, TypeScript, Vite
+- **Frontend:** JavaScript (ES6+), React 18, Vite
 - **Styling & Motion:** Tailwind CSS, Framer Motion, Lucide React
 - **Backend & Database:** Supabase Auth, PostgreSQL
 
