@@ -1,12 +1,12 @@
 import { createClient } from '@supabase/supabase-js'
 
-const url = import.meta.env.VITE_SUPABASE_URL
-const key = import.meta.env.VITE_SUPABASE_ANON_KEY
+const url = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co'
+const key = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder'
 
-if (!url || url.includes('your-project-id')) {
+if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL.includes('your-project-id')) {
   console.error(
     '⚠️ Supabase not configured.\n' +
-    'Open .env and fill in VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.'
+    'Fill in VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your environment.'
   )
 }
 
