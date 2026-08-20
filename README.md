@@ -5,11 +5,10 @@ A task management web application built with JavaScript, React, Tailwind CSS, Fr
 ## Features
 
 - **Task Management:** Add, complete, filter, and delete tasks.
-- **Inline Notes:** Add and edit notes attached to each task.
+- **Inline Notes:** Add and edit notes attached to each task with automatic saving.
 - **Due Dates:** Assign due dates with quick shortcuts (Today, Tomorrow, Next Week, or custom date) and overdue indicators.
-- **Drag-and-Drop Reordering:** Reorder tasks by dragging them into position.
-- **User Authentication:** Multi-user support with registration and login powered by Supabase Auth.
-- **Database Storage:** Tasks are stored in Supabase PostgreSQL with Row Level Security (RLS) ensuring each user accesses only their own data.
+- **Drag-and-Drop Reordering:** Reorder tasks seamlessly by dragging them into position.
+- **Storage & Cloud Sync:** Fast local storage task management with optional Supabase cloud persistence.
 
 ## Tech Stack
 
@@ -32,7 +31,7 @@ cd focus-todo
 npm install
 ```
 
-### 3. Configure Environment Variables
+### 3. Configure Environment Variables (Optional)
 
 Create a `.env` file in the root directory:
 
@@ -41,7 +40,7 @@ VITE_SUPABASE_URL=https://your-project-id.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-public-key
 ```
 
-### 4. Database Setup
+### 4. Database Setup (Optional for Cloud Sync)
 
 Run the following SQL in the Supabase SQL Editor to create the required table and policies:
 
@@ -65,8 +64,6 @@ create policy "Users manage their own todos"
 
 create index todos_user_id_idx on public.todos(user_id);
 ```
-
-In Supabase Dashboard under **Authentication -> Providers -> Email**, disable **Confirm email** for instant registration.
 
 ### 5. Run the Application
 
