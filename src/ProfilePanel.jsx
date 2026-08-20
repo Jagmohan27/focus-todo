@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, LogOut, Copy, Check } from 'lucide-react'
+import { X, Copy, Check } from 'lucide-react'
 import { useState } from 'react'
 
 const SPRING = { type: 'spring', stiffness: 380, damping: 28 }
@@ -41,11 +41,8 @@ function CopyButton({ text }) {
   )
 }
 
-export default function ProfilePanel({ user, taskCount, completedCount, open, onClose, onLogout }) {
+export default function ProfilePanel({ user, taskCount, completedCount, open, onClose }) {
   const color = avatarColor(user?.id)
-  const joined = user?.createdAt
-    ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-    : 'N/A'
 
   return (
     <AnimatePresence>
@@ -70,7 +67,7 @@ export default function ProfilePanel({ user, taskCount, completedCount, open, on
             className="fixed top-0 right-0 bottom-0 z-50 w-80 bg-white/90 backdrop-blur-xl border-l border-gray-200/60 shadow-2xl flex flex-col"
           >
             <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-100">
-              <span className="text-[15px] font-semibold tracking-tight text-[#1D1D1F]">Profile</span>
+              <span className="text-[15px] font-semibold tracking-tight text-[#1D1D1F]">Tasks Overview</span>
               <button
                 id="close-profile"
                 onClick={onClose}
@@ -89,11 +86,11 @@ export default function ProfilePanel({ user, taskCount, completedCount, open, on
                   className="w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-bold shadow-md select-none"
                   style={{ background: `linear-gradient(135deg, ${color}, ${color}aa)` }}
                 >
-                  {user?.initials}
+                  ✓
                 </motion.div>
                 <div className="text-center">
-                  <p className="text-[18px] font-bold tracking-tight text-[#1D1D1F]">{user?.name}</p>
-                  <p className="text-[13px] text-[#1D1D1F]/45 tracking-tight">{user?.email}</p>
+                  <p className="text-[18px] font-bold tracking-tight text-[#1D1D1F]">Task Workspace</p>
+                  <p className="text-[13px] text-[#1D1D1F]/45 tracking-tight">Saved locally on your device</p>
                 </div>
               </div>
 
@@ -114,47 +111,15 @@ export default function ProfilePanel({ user, taskCount, completedCount, open, on
               </div>
 
               <div className="rounded-2xl border border-gray-100 divide-y divide-gray-100 overflow-hidden">
-                {[
-                  { label: 'Member since', value: joined, copy: false },
-                  { label: 'Unique User ID', value: user?.id, copy: true, mono: true },
-                ].map((row) => (
-                  <div key={row.label} className="px-4 py-3">
-                    <p className="text-[11px] font-semibold tracking-widest uppercase text-[#1D1D1F]/35 mb-1">
-                      {row.label}
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <p
-                        className="text-[12.5px] tracking-tight text-[#1D1D1F]/70 truncate flex-1"
-                        style={{ fontFamily: row.mono ? 'monospace' : 'inherit' }}
-                      >
-                        {row.value}
-                      </p>
-                      {row.copy && <CopyButton text={row.value} />}
-                    </div>
-                  </div>
-                ))}
+                <div className="px-4 py-3">
+                  <p className="text-[11px] font-semibold tracking-widest uppercase text-[#1D1D1F]/35 mb-1">
+                    Storage Mode
+                  </p>
+                  <p className="text-[12.5px] tracking-tight text-[#1D1D1F]/70">
+                    Local Device Storage
+                  </p>
+                </div>
               </div>
-
-              <p className="text-[11.5px] text-[#1D1D1F]/28 tracking-tight leading-relaxed text-center px-2">
-                Your data is saved to the cloud. Works on any device, any browser.
-              </p>
-            </div>
-
-            <div className="px-5 pb-6 pt-3 border-t border-gray-100">
-              <motion.button
-                id="logout-btn"
-                whileTap={{ scale: 0.97 }}
-                transition={SPRING}
-                onClick={onLogout}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-[14px] font-medium tracking-tight transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
-                style={{
-                  background: 'rgba(255,59,48,0.07)',
-                  color: '#FF3B30',
-                }}
-              >
-                <LogOut size={15} strokeWidth={2} />
-                Sign Out
-              </motion.button>
             </div>
           </motion.div>
         </>
