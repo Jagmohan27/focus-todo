@@ -171,7 +171,7 @@ function TodoItem({ todo, onToggle, onDelete, onNoteChange, onDueDateChange }) {
                 <textarea ref={noteRef} id={`note-input-${todo.id}`} value={todo.note} onChange={(e) => { onNoteChange(todo.id, e.target.value); autoGrow() }} onKeyDown={(e) => { if (e.key === 'Escape') setNoteOpen(false) }} placeholder="Add a note…" rows={2} className="flex-1 resize-none bg-transparent border-none outline-none text-[13.5px] tracking-tight text-[#1D1D1F]/75 placeholder:text-[#1D1D1F]/25 leading-relaxed caret-[#0071E3] mt-1.5" />
               </div>
               <div className="flex justify-between items-center mt-2">
-                <span className="text-[11px] text-[#1D1D1F]/25 tracking-tight">Saved to cloud · Esc to close</span>
+                <span className="text-[11px] text-[#1D1D1F]/25 tracking-tight">Saved to device · Esc to close</span>
                 <button onClick={() => setNoteOpen(false)} className="flex items-center gap-1 text-[11px] text-[#1D1D1F]/35 hover:text-[#0071E3] transition-colors tracking-tight focus:outline-none">
                   <ChevronDown size={11} /> Done
                 </button>
@@ -247,6 +247,15 @@ export default function App({ user, onLogout }) {
   const activeCount = todos.filter((t) => !t.completed).length
   const completedCount = todos.filter((t) => t.completed).length
   const overdueCount = todos.filter((t) => !t.completed && t.dueDate && t.dueDate < todayStr()).length
+
+  // Dynamically update document.title with active task count
+  useEffect(() => {
+    if (activeCount > 0) {
+      document.title = `Focus (${activeCount}) · Tasks`
+    } else {
+      document.title = 'Focus · Tasks'
+    }
+  }, [activeCount])
 
   const handleAdd = useCallback(async () => {
     const text = input.trim(); if (!text) return
@@ -333,7 +342,7 @@ export default function App({ user, onLogout }) {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ ...SOFT, delay: 0.10 }} className="mb-8">
           <p className="text-[12px] font-medium text-[#0071E3] tracking-widest uppercase mb-1.5">{formatDate(new Date())}</p>
           <h1 className="text-[34px] font-bold tracking-tighter leading-none text-[#1D1D1F]">
-            Hi, {user.name.split(' ')[0]} 👋
+            My Tasks
           </h1>
         </motion.div>
 
@@ -441,7 +450,7 @@ export default function App({ user, onLogout }) {
         <span className="w-px h-3 bg-gray-300/70" />
         <span className="text-[11px] text-[#1D1D1F]/30 tracking-tight whitespace-nowrap"><kbd className="font-mono">↵</kbd> to add</span>
         <span className="w-px h-3 bg-gray-300/70" />
-        <span className="text-[11px] text-[#1D1D1F]/30 tracking-tight whitespace-nowrap">☁️ synced to cloud</span>
+        <span className="text-[11px] text-[#1D1D1F]/30 tracking-tight whitespace-nowrap">💾 saved to device</span>
       </motion.div>
 
       <ProfilePanel user={user} taskCount={todos.length} completedCount={completedCount} open={profileOpen} onClose={() => setProfileOpen(false)} onLogout={handleLogout} />
