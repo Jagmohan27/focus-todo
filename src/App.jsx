@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { AnimatePresence, motion, Reorder } from 'framer-motion'
-import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X } from 'lucide-react'
+import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X, HelpCircle } from 'lucide-react'
 import {
   fetchTodos, insertTodo, updateTodo, deleteTodo,
   deleteCompletedTodos, logout,
@@ -40,6 +40,60 @@ const PRI = {
   today: { bg: 'rgba(255,149,0,0.09)', text: '#FF9500', dot: '#FF9500' },
   soon: { bg: 'rgba(0,113,227,0.08)', text: '#0071E3', dot: '#0071E3' },
   future: { bg: 'rgba(0,0,0,0.04)', text: 'rgba(29,29,31,0.45)', dot: 'rgba(29,29,31,0.30)' },
+}
+
+function ShortcutsModal({ open, onClose }) {
+  const shortcuts = [
+    { key: 'Space', desc: 'Focus task input field' },
+    { key: '↵ Enter', desc: 'Add new task' },
+    { key: 'Esc', desc: 'Cancel input or close panel' },
+    { key: '?', desc: 'Toggle keyboard shortcuts' },
+  ]
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <>
+          <motion.div
+            key="sc-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 z-50 bg-black/20 backdrop-blur-[2px]"
+          />
+          <motion.div
+            key="sc-modal"
+            initial={{ opacity: 0, scale: 0.94, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.94, y: 12 }}
+            transition={SPRING}
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl border border-gray-100"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Command size={16} className="text-[#0071E3]" />
+                <h3 className="text-[16px] font-bold tracking-tight text-[#1D1D1F]">Keyboard Shortcuts</h3>
+              </div>
+              <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
+                <X size={15} className="text-gray-400" />
+              </button>
+            </div>
+            <div className="space-y-2.5">
+              {shortcuts.map((s) => (
+                <div key={s.key} className="flex items-center justify-between py-1.5 px-3 rounded-xl bg-gray-50/80">
+                  <span className="text-[13px] text-[#1D1D1F]/70 tracking-tight">{s.desc}</span>
+                  <kbd className="px-2 py-0.5 rounded-md bg-white border border-gray-200 text-[12px] font-mono text-[#1D1D1F] shadow-2xs">
+                    {s.key}
+                  </kbd>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  )
 }
 
 function DueBadge({ dueDate, completed, onClear, showClear }) {
@@ -234,6 +288,7 @@ export default function App({ user, onLogout }) {
   const [showSlash, setShowSlash] = useState(false)
   const [inputFocused, setInputFocused] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+  const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const inputRef = useRef(null)
 
   useEffect(() => {
@@ -248,7 +303,6 @@ export default function App({ user, onLogout }) {
   const completedCount = todos.filter((t) => t.completed).length
   const overdueCount = todos.filter((t) => !t.completed && t.dueDate && t.dueDate < todayStr()).length
 
-  // Dynamically update document.title with active task count
   useEffect(() => {
     if (activeCount > 0) {
       document.title = `Focus (${activeCount}) · Tasks`
@@ -303,6 +357,7 @@ export default function App({ user, onLogout }) {
   useEffect(() => {
     const h = (e) => {
       if (e.key === ' ' && document.activeElement === document.body) { e.preventDefault(); inputRef.current?.focus() }
+      if (e.key === '?' && document.activeElement === document.body) { e.preventDefault(); setShortcutsOpen((o) => !o) }
     }
     window.addEventListener('keydown', h); return () => window.removeEventListener('keydown', h)
   }, [])
@@ -331,6 +386,9 @@ export default function App({ user, onLogout }) {
             <span className="text-[13px] text-[#1D1D1F]/40 tracking-tight hidden sm:block">
               {activeCount > 0 ? `${activeCount} remaining` : completedCount > 0 ? '✓ All done' : ''}
             </span>
+            <button onClick={() => setShortcutsOpen(true)} title="Keyboard shortcuts (?)" className="w-8 h-8 rounded-full flex items-center justify-center text-[#1D1D1F]/40 hover:text-[#0071E3] hover:bg-blue-50 transition-colors focus:outline-none">
+              <HelpCircle size={17} strokeWidth={1.8} />
+            </button>
             <motion.button id="profile-btn" whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.93 }} transition={SPRING} onClick={() => setProfileOpen(true)} aria-label="Open profile" className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[12px] font-bold shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3] focus-visible:ring-offset-2" style={{ background: `linear-gradient(135deg,${color},${color}aa)` }}>
               {user.initials}
             </motion.button>
@@ -446,14 +504,15 @@ export default function App({ user, onLogout }) {
       </motion.button>
 
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/60 backdrop-blur-md border border-gray-200/50 shadow-sm pointer-events-none">
-        <span className="text-[11px] text-[#1D1D1F]/30 tracking-tight whitespace-nowrap"><kbd className="font-mono">Space</kbd> to focus</span>
+        <span className="text-[11px] text-[#1D1D1F]/30 tracking-tight whitespace-nowrap"><kbd className="font-mono">Space</kbd> focus</span>
         <span className="w-px h-3 bg-gray-300/70" />
-        <span className="text-[11px] text-[#1D1D1F]/30 tracking-tight whitespace-nowrap"><kbd className="font-mono">↵</kbd> to add</span>
+        <span className="text-[11px] text-[#1D1D1F]/30 tracking-tight whitespace-nowrap"><kbd className="font-mono">?</kbd> shortcuts</span>
         <span className="w-px h-3 bg-gray-300/70" />
-        <span className="text-[11px] text-[#1D1D1F]/30 tracking-tight whitespace-nowrap">💾 saved to device</span>
+        <span className="text-[11px] text-[#1D1D1F]/30 tracking-tight whitespace-nowrap">💾 saved locally</span>
       </motion.div>
 
       <ProfilePanel user={user} taskCount={todos.length} completedCount={completedCount} open={profileOpen} onClose={() => setProfileOpen(false)} onLogout={handleLogout} />
+      <ShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
     </div>
   )
 }
