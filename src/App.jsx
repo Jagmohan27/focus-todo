@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { AnimatePresence, motion, Reorder } from 'framer-motion'
-import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X, HelpCircle } from 'lucide-react'
+import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X, HelpCircle, Search } from 'lucide-react'
 import {
   fetchTodos, insertTodo, updateTodo, deleteTodo,
   deleteCompletedTodos, logout,
@@ -247,9 +247,9 @@ function FilterPill({ label, active, onClick, id }) {
   )
 }
 
-function EmptyState({ filter }) {
+function EmptyState({ filter, isSearch }) {
   const msgs = {
-    all: 'Your canvas is blank. Add your first task above.',
+    all: isSearch ? 'No tasks match your search query.' : 'Your canvas is blank. Add your first task above.',
     active: 'Nothing left to do. Enjoy the moment.',
     completed: 'No completed tasks yet.',
   }
@@ -284,6 +284,7 @@ export default function App({ user, onLogout }) {
   const [loadingData, setLoadingData] = useState(true)
   const [input, setInput] = useState('')
   const [dueInput, setDueInput] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState('all')
   const [showSlash, setShowSlash] = useState(false)
   const [inputFocused, setInputFocused] = useState(false)
@@ -298,7 +299,14 @@ export default function App({ user, onLogout }) {
     })
   }, [user.id])
 
-  const filtered = todos.filter((t) => (filter === 'active' ? !t.completed : filter === 'completed' ? t.completed : true))
+  const filtered = todos.filter((t) => {
+    const matchesFilter = filter === 'active' ? !t.completed : filter === 'completed' ? t.completed : true
+    const matchesSearch = searchQuery.trim() === '' ||
+      t.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (t.note && t.note.toLowerCase().includes(searchQuery.toLowerCase()))
+    return matchesFilter && matchesSearch
+  })
+
   const activeCount = todos.filter((t) => !t.completed).length
   const completedCount = todos.filter((t) => t.completed).length
   const overdueCount = todos.filter((t) => !t.completed && t.dueDate && t.dueDate < todayStr()).length
@@ -444,19 +452,40 @@ export default function App({ user, onLogout }) {
           </motion.div>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.22 }} className="flex items-center justify-between mb-4">
+        {/* Filter pills & Search input */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.22 }} className="flex items-center justify-between gap-3 mb-4 flex-wrap">
           <div className="flex items-center gap-0.5" role="group" aria-label="Filter tasks">
             {['all', 'active', 'completed'].map((f) => (
               <FilterPill key={f} id={`filter-${f}`} label={f.charAt(0).toUpperCase() + f.slice(1)} active={filter === f} onClick={() => setFilter(f)} />
             ))}
           </div>
-          <AnimatePresence>
-            {completedCount > 0 && (
-              <motion.button id="clear-btn" key="clear" initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }} transition={SPRING} onClick={handleClearCompleted} className="text-[13px] text-[#1D1D1F]/32 hover:text-red-400 tracking-tight transition-colors duration-150 focus:outline-none">
-                Clear done
-              </motion.button>
-            )}
-          </AnimatePresence>
+
+          <div className="flex items-center gap-2">
+            {/* Search Input Bar */}
+            <div className="relative flex items-center">
+              <Search size={13} className="absolute left-2.5 text-[#1D1D1F]/35" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search tasks…"
+                className="pl-8 pr-7 py-1 rounded-full text-[12.5px] bg-white border border-gray-200/80 outline-none text-[#1D1D1F] placeholder:text-[#1D1D1F]/30 focus:border-[#0071E3] transition-all w-36 sm:w-44"
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery('')} className="absolute right-2 text-[#1D1D1F]/30 hover:text-[#1D1D1F]/70">
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+
+            <AnimatePresence>
+              {completedCount > 0 && (
+                <motion.button id="clear-btn" key="clear" initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }} transition={SPRING} onClick={handleClearCompleted} className="text-[13px] text-[#1D1D1F]/32 hover:text-red-400 tracking-tight transition-colors duration-150 focus:outline-none whitespace-nowrap">
+                  Clear done
+                </motion.button>
+              )}
+            </AnimatePresence>
+          </div>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ ...SOFT, delay: 0.26 }}>
@@ -467,7 +496,7 @@ export default function App({ user, onLogout }) {
           ) : (
             <AnimatePresence mode="wait">
               {filtered.length === 0 ? (
-                <EmptyState key="empty" filter={filter} />
+                <EmptyState key="empty" filter={filter} isSearch={searchQuery.trim().length > 0} />
               ) : (
                 <Reorder.Group axis="y" values={filtered} onReorder={(newOrder) => {
                   setTodos((prev) => {
