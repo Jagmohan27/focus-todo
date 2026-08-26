@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Copy, Check } from 'lucide-react'
-import { useState } from 'react'
+import { X, Copy, Check, Download, Upload } from 'lucide-react'
+import { useState, useRef } from 'react'
 
 const SPRING = { type: 'spring', stiffness: 380, damping: 28 }
 
@@ -43,6 +43,51 @@ function CopyButton({ text }) {
 
 export default function ProfilePanel({ user, taskCount, completedCount, open, onClose }) {
   const color = avatarColor(user?.id)
+  const fileInputRef = useRef(null)
+  const [importStatus, setImportStatus] = useState('')
+
+  const handleExport = () => {
+    try {
+      const raw = localStorage.getItem('focus-todos-local-v1') || '[]'
+      const blob = new Blob([raw], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `focus-tasks-backup-${new Date().toISOString().slice(0, 10)}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Export error:', err)
+    }
+  }
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (evt) => {
+      try {
+        const parsed = JSON.parse(evt.target.result)
+        if (Array.isArray(parsed)) {
+          localStorage.setItem('focus-todos-local-v1', JSON.stringify(parsed))
+          setImportStatus('Restored!')
+          setTimeout(() => {
+            window.location.reload()
+          }, 600)
+        } else {
+          setImportStatus('Invalid JSON')
+        }
+      } catch {
+        setImportStatus('File error')
+      }
+    }
+    reader.readAsText(file)
+  }
 
   return (
     <AnimatePresence>
@@ -118,6 +163,36 @@ export default function ProfilePanel({ user, taskCount, completedCount, open, on
                   <p className="text-[12.5px] tracking-tight text-[#1D1D1F]/70">
                     Local Device Storage
                   </p>
+                </div>
+              </div>
+
+              {/* Data Backup & Restore */}
+              <div className="space-y-2 pt-2">
+                <p className="text-[11px] font-semibold tracking-widest uppercase text-[#1D1D1F]/35 px-1">
+                  Backup & Restore
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={handleExport}
+                    className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-gray-200/80 bg-white text-[12.5px] font-medium text-[#1D1D1F] hover:bg-gray-50 transition-colors focus:outline-none"
+                  >
+                    <Download size={13} className="text-[#0071E3]" />
+                    Export JSON
+                  </button>
+                  <button
+                    onClick={handleImportClick}
+                    className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-gray-200/80 bg-white text-[12.5px] font-medium text-[#1D1D1F] hover:bg-gray-50 transition-colors focus:outline-none"
+                  >
+                    <Upload size={13} className="text-[#0071E3]" />
+                    {importStatus || 'Import JSON'}
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".json"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
                 </div>
               </div>
             </div>
