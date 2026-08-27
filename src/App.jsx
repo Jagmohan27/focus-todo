@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { AnimatePresence, motion, Reorder } from 'framer-motion'
-import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X, HelpCircle, Search } from 'lucide-react'
+import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X, HelpCircle, Search, ArrowUpDown } from 'lucide-react'
 import {
   fetchTodos, insertTodo, updateTodo, deleteTodo,
   deleteCompletedTodos, logout,
@@ -285,6 +285,7 @@ export default function App({ user, onLogout }) {
   const [input, setInput] = useState('')
   const [dueInput, setDueInput] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+  const [sortBy, setSortBy] = useState('date-desc')
   const [filter, setFilter] = useState('all')
   const [showSlash, setShowSlash] = useState(false)
   const [inputFocused, setInputFocused] = useState(false)
@@ -305,6 +306,21 @@ export default function App({ user, onLogout }) {
       t.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (t.note && t.note.toLowerCase().includes(searchQuery.toLowerCase()))
     return matchesFilter && matchesSearch
+  })
+
+  const sorted = [...filtered].sort((a, b) => {
+    if (sortBy === 'due-date') {
+      if (!a.dueDate) return 1
+      if (!b.dueDate) return -1
+      return a.dueDate.localeCompare(b.dueDate)
+    }
+    if (sortBy === 'alpha') {
+      return a.text.localeCompare(b.text)
+    }
+    if (sortBy === 'date-asc') {
+      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    }
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   })
 
   const activeCount = todos.filter((t) => !t.completed).length
@@ -452,7 +468,7 @@ export default function App({ user, onLogout }) {
           </motion.div>
         </motion.div>
 
-        {/* Filter pills & Search input */}
+        {/* Filter pills, Sort selector & Search input */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.22 }} className="flex items-center justify-between gap-3 mb-4 flex-wrap">
           <div className="flex items-center gap-0.5" role="group" aria-label="Filter tasks">
             {['all', 'active', 'completed'].map((f) => (
@@ -461,6 +477,21 @@ export default function App({ user, onLogout }) {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Sort Dropdown */}
+            <div className="relative flex items-center">
+              <ArrowUpDown size={13} className="absolute left-2.5 text-[#1D1D1F]/35 pointer-events-none" />
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="pl-8 pr-3 py-1 rounded-full text-[12.5px] bg-white border border-gray-200/80 outline-none text-[#1D1D1F]/70 hover:text-[#1D1D1F] cursor-pointer appearance-none transition-all"
+              >
+                <option value="date-desc">Newest first</option>
+                <option value="date-asc">Oldest first</option>
+                <option value="due-date">Due date</option>
+                <option value="alpha">Alphabetical</option>
+              </select>
+            </div>
+
             {/* Search Input Bar */}
             <div className="relative flex items-center">
               <Search size={13} className="absolute left-2.5 text-[#1D1D1F]/35" />
@@ -469,7 +500,7 @@ export default function App({ user, onLogout }) {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search tasks…"
-                className="pl-8 pr-7 py-1 rounded-full text-[12.5px] bg-white border border-gray-200/80 outline-none text-[#1D1D1F] placeholder:text-[#1D1D1F]/30 focus:border-[#0071E3] transition-all w-36 sm:w-44"
+                className="pl-8 pr-7 py-1 rounded-full text-[12.5px] bg-white border border-gray-200/80 outline-none text-[#1D1D1F] placeholder:text-[#1D1D1F]/30 focus:border-[#0071E3] transition-all w-32 sm:w-40"
               />
               {searchQuery && (
                 <button onClick={() => setSearchQuery('')} className="absolute right-2 text-[#1D1D1F]/30 hover:text-[#1D1D1F]/70">
@@ -495,17 +526,17 @@ export default function App({ user, onLogout }) {
             </div>
           ) : (
             <AnimatePresence mode="wait">
-              {filtered.length === 0 ? (
+              {sorted.length === 0 ? (
                 <EmptyState key="empty" filter={filter} isSearch={searchQuery.trim().length > 0} />
               ) : (
-                <Reorder.Group axis="y" values={filtered} onReorder={(newOrder) => {
+                <Reorder.Group axis="y" values={sorted} onReorder={(newOrder) => {
                   setTodos((prev) => {
-                    const others = prev.filter((t) => !filtered.find((f) => f.id === t.id))
+                    const others = prev.filter((t) => !sorted.find((f) => f.id === t.id))
                     return [...newOrder, ...others]
                   })
                 }} as="ul" className="flex flex-col gap-2.5 p-0 m-0" style={{ listStyle: 'none' }}>
                   <AnimatePresence>
-                    {filtered.map((todo) => (
+                    {sorted.map((todo) => (
                       <TodoItem key={todo.id} todo={todo} onToggle={handleToggle} onDelete={handleDelete} onNoteChange={handleNoteChange} onDueDateChange={handleDueDateChange} />
                     ))}
                   </AnimatePresence>
