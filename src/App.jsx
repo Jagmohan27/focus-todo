@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { AnimatePresence, motion, Reorder } from 'framer-motion'
-import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X, HelpCircle, Search, ArrowUpDown } from 'lucide-react'
+import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X, HelpCircle, Search, ArrowUpDown, Tag } from 'lucide-react'
 import {
   fetchTodos, insertTodo, updateTodo, deleteTodo,
   deleteCompletedTodos, logout,
@@ -14,6 +14,13 @@ const todayStr = () => new Date().toISOString().slice(0, 10)
 
 const formatDate = (d) =>
   d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+
+const TAG_CONFIG = {
+  work: { label: 'Work', bg: 'rgba(0,113,227,0.08)', text: '#0071E3' },
+  personal: { label: 'Personal', bg: 'rgba(175,82,222,0.08)', text: '#AF52DE' },
+  idea: { label: 'Idea', bg: 'rgba(255,149,0,0.08)', text: '#FF9500' },
+  urgent: { label: 'Urgent', bg: 'rgba(255,59,48,0.08)', text: '#FF3B30' },
+}
 
 function dueDateLabel(iso) {
   const t = todayStr()
@@ -182,6 +189,11 @@ function TodoItem({ todo, onToggle, onDelete, onNoteChange, onDueDateChange }) {
             {todo.text}
           </p>
           <div className="flex items-center flex-wrap gap-1.5 mt-1">
+            {todo.tag && TAG_CONFIG[todo.tag] && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium tracking-tight" style={{ backgroundColor: TAG_CONFIG[todo.tag].bg, color: TAG_CONFIG[todo.tag].text }}>
+                {TAG_CONFIG[todo.tag].label}
+              </span>
+            )}
             {todo.dueDate && <DueBadge dueDate={todo.dueDate} completed={todo.completed} showClear={hovered} onClear={() => onDueDateChange(todo.id, null)} />}
             {hasNote && !noteOpen && <span className="text-[11.5px] text-[#1D1D1F]/35 leading-snug tracking-tight truncate max-w-[160px]">{todo.note}</span>}
           </div>
@@ -284,6 +296,7 @@ export default function App({ user, onLogout }) {
   const [loadingData, setLoadingData] = useState(true)
   const [input, setInput] = useState('')
   const [dueInput, setDueInput] = useState('')
+  const [selectedTag, setSelectedTag] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('date-desc')
   const [filter, setFilter] = useState('all')
@@ -337,12 +350,12 @@ export default function App({ user, onLogout }) {
 
   const handleAdd = useCallback(async () => {
     const text = input.trim(); if (!text) return
-    const temp = { id: crypto.randomUUID(), text, completed: false, note: '', dueDate: dueInput || null, createdAt: new Date().toISOString() }
+    const temp = { id: crypto.randomUUID(), text, completed: false, note: '', tag: selectedTag, dueDate: dueInput || null, createdAt: new Date().toISOString() }
     setTodos((p) => [temp, ...p])
-    setInput(''); setDueInput(''); setShowSlash(false)
-    const saved = await insertTodo(user.id, { text, completed: false, note: '', dueDate: dueInput || null })
+    setInput(''); setDueInput(''); setSelectedTag(null); setShowSlash(false)
+    const saved = await insertTodo(user.id, { text, completed: false, note: '', tag: selectedTag, dueDate: dueInput || null })
     if (saved) setTodos((p) => p.map((t) => (t.id === temp.id ? saved : t)))
-  }, [input, dueInput, user.id])
+  }, [input, dueInput, selectedTag, user.id])
 
   const handleToggle = useCallback(async (id) => {
     const todo = todos.find((t) => t.id === id); if (!todo) return
@@ -375,7 +388,7 @@ export default function App({ user, onLogout }) {
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') handleAdd()
-    if (e.key === 'Escape') { setInput(''); setDueInput(''); setShowSlash(false); inputRef.current?.blur() }
+    if (e.key === 'Escape') { setInput(''); setDueInput(''); setSelectedTag(null); setShowSlash(false); inputRef.current?.blur() }
   }
 
   useEffect(() => {
@@ -445,6 +458,31 @@ export default function App({ user, onLogout }) {
               </AnimatePresence>
             </div>
 
+            {/* Tag selector pills */}
+            <div className="mb-2">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <Tag size={11} strokeWidth={2} className="text-[#1D1D1F]/35" />
+                <span className="text-[11px] font-semibold text-[#1D1D1F]/35 tracking-widest uppercase">Tag</span>
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {Object.entries(TAG_CONFIG).map(([key, cfg]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setSelectedTag(selectedTag === key ? null : key)}
+                    className="px-2.5 py-0.5 rounded-full text-[11.5px] font-medium tracking-tight transition-all border"
+                    style={{
+                      backgroundColor: selectedTag === key ? cfg.text : 'transparent',
+                      color: selectedTag === key ? 'white' : cfg.text,
+                      borderColor: selectedTag === key ? cfg.text : `${cfg.text}40`,
+                    }}
+                  >
+                    {cfg.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="mb-1">
               <div className="flex items-center gap-1.5 mb-2">
                 <Calendar size={11} strokeWidth={2} className="text-[#1D1D1F]/35" />
@@ -477,7 +515,6 @@ export default function App({ user, onLogout }) {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Sort Dropdown */}
             <div className="relative flex items-center">
               <ArrowUpDown size={13} className="absolute left-2.5 text-[#1D1D1F]/35 pointer-events-none" />
               <select
@@ -492,7 +529,6 @@ export default function App({ user, onLogout }) {
               </select>
             </div>
 
-            {/* Search Input Bar */}
             <div className="relative flex items-center">
               <Search size={13} className="absolute left-2.5 text-[#1D1D1F]/35" />
               <input
