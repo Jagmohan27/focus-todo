@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { AnimatePresence, motion, Reorder } from 'framer-motion'
-import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X, HelpCircle, Search, ArrowUpDown, Tag } from 'lucide-react'
+import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X, HelpCircle, Search, ArrowUpDown, Tag, Sun, Moon } from 'lucide-react'
 import {
   fetchTodos, insertTodo, updateTodo, deleteTodo,
   deleteCompletedTodos, logout,
@@ -16,10 +16,10 @@ const formatDate = (d) =>
   d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
 
 const TAG_CONFIG = {
-  work: { label: 'Work', bg: 'rgba(0,113,227,0.08)', text: '#0071E3' },
-  personal: { label: 'Personal', bg: 'rgba(175,82,222,0.08)', text: '#AF52DE' },
-  idea: { label: 'Idea', bg: 'rgba(255,149,0,0.08)', text: '#FF9500' },
-  urgent: { label: 'Urgent', bg: 'rgba(255,59,48,0.08)', text: '#FF3B30' },
+  work: { label: 'Work', bg: 'rgba(0,113,227,0.12)', text: '#0071E3' },
+  personal: { label: 'Personal', bg: 'rgba(175,82,222,0.12)', text: '#AF52DE' },
+  idea: { label: 'Idea', bg: 'rgba(255,149,0,0.12)', text: '#FF9500' },
+  urgent: { label: 'Urgent', bg: 'rgba(255,59,48,0.12)', text: '#FF3B30' },
 }
 
 function dueDateLabel(iso) {
@@ -43,13 +43,13 @@ function duePriority(iso, completed) {
 }
 
 const PRI = {
-  overdue: { bg: 'rgba(255,59,48,0.08)', text: '#FF3B30', dot: '#FF3B30' },
-  today: { bg: 'rgba(255,149,0,0.09)', text: '#FF9500', dot: '#FF9500' },
-  soon: { bg: 'rgba(0,113,227,0.08)', text: '#0071E3', dot: '#0071E3' },
-  future: { bg: 'rgba(0,0,0,0.04)', text: 'rgba(29,29,31,0.45)', dot: 'rgba(29,29,31,0.30)' },
+  overdue: { bg: 'rgba(255,59,48,0.12)', text: '#FF3B30', dot: '#FF3B30' },
+  today: { bg: 'rgba(255,149,0,0.12)', text: '#FF9500', dot: '#FF9500' },
+  soon: { bg: 'rgba(0,113,227,0.12)', text: '#0071E3', dot: '#0071E3' },
+  future: { bg: 'rgba(120,120,128,0.12)', text: 'rgba(140,140,145,0.85)', dot: 'rgba(140,140,145,0.6)' },
 }
 
-function ShortcutsModal({ open, onClose }) {
+function ShortcutsModal({ open, onClose, darkMode }) {
   const shortcuts = [
     { key: 'Space', desc: 'Focus task input field' },
     { key: '↵ Enter', desc: 'Add new task' },
@@ -67,7 +67,7 @@ function ShortcutsModal({ open, onClose }) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-black/20 backdrop-blur-[2px]"
+            className="fixed inset-0 z-50 bg-black/30 backdrop-blur-[2px]"
           />
           <motion.div
             key="sc-modal"
@@ -75,22 +75,22 @@ function ShortcutsModal({ open, onClose }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 12 }}
             transition={SPRING}
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl border border-gray-100"
+            className={`fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-sm rounded-3xl p-6 shadow-2xl border ${darkMode ? 'bg-[#1C1C1E] border-gray-800 text-white' : 'bg-white border-gray-100 text-[#1D1D1F]'}`}
           >
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Command size={16} className="text-[#0071E3]" />
-                <h3 className="text-[16px] font-bold tracking-tight text-[#1D1D1F]">Keyboard Shortcuts</h3>
+                <h3 className="text-[16px] font-bold tracking-tight">Keyboard Shortcuts</h3>
               </div>
-              <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors">
-                <X size={15} className="text-gray-400" />
+              <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-gray-500/10 transition-colors">
+                <X size={15} className="opacity-50" />
               </button>
             </div>
             <div className="space-y-2.5">
               {shortcuts.map((s) => (
-                <div key={s.key} className="flex items-center justify-between py-1.5 px-3 rounded-xl bg-gray-50/80">
-                  <span className="text-[13px] text-[#1D1D1F]/70 tracking-tight">{s.desc}</span>
-                  <kbd className="px-2 py-0.5 rounded-md bg-white border border-gray-200 text-[12px] font-mono text-[#1D1D1F] shadow-2xs">
+                <div key={s.key} className={`flex items-center justify-between py-1.5 px-3 rounded-xl ${darkMode ? 'bg-[#2C2C2E]' : 'bg-gray-50/80'}`}>
+                  <span className="text-[13px] opacity-75 tracking-tight">{s.desc}</span>
+                  <kbd className={`px-2 py-0.5 rounded-md border text-[12px] font-mono shadow-2xs ${darkMode ? 'bg-[#3A3A3C] border-gray-700 text-white' : 'bg-white border-gray-200 text-[#1D1D1F]'}`}>
                     {s.key}
                   </kbd>
                 </div>
@@ -123,7 +123,7 @@ function DueBadge({ dueDate, completed, onClear, showClear }) {
 
 function Checkbox({ checked, onChange, id }) {
   return (
-    <button id={`cb-${id}`} aria-label={checked ? 'Mark incomplete' : 'Mark complete'} onClick={onChange} className="relative flex-shrink-0 w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3] focus-visible:ring-offset-2" style={{ borderColor: checked ? '#0071E3' : 'rgba(0,0,0,0.22)', backgroundColor: checked ? '#0071E3' : 'transparent' }}>
+    <button id={`cb-${id}`} aria-label={checked ? 'Mark incomplete' : 'Mark complete'} onClick={onChange} className="relative flex-shrink-0 w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3] focus-visible:ring-offset-2" style={{ borderColor: checked ? '#0071E3' : 'rgba(140,140,145,0.4)', backgroundColor: checked ? '#0071E3' : 'transparent' }}>
       <AnimatePresence>
         {checked && (
           <motion.span key="chk" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={SPRING}>
@@ -135,7 +135,7 @@ function Checkbox({ checked, onChange, id }) {
   )
 }
 
-function DateShortcuts({ value, onChange }) {
+function DateShortcuts({ value, onChange, darkMode }) {
   const t = todayStr()
   const opts = [
     { label: 'Today', date: t },
@@ -145,19 +145,19 @@ function DateShortcuts({ value, onChange }) {
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
       {opts.map((o) => (
-        <button key={o.label} type="button" onClick={() => onChange(value === o.date ? '' : o.date)} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] tracking-tight font-medium transition-all duration-150 focus:outline-none border" style={{ backgroundColor: value === o.date ? '#0071E3' : 'transparent', color: value === o.date ? 'white' : 'rgba(29,29,31,0.50)', borderColor: value === o.date ? '#0071E3' : 'rgba(0,0,0,0.10)' }}>
+        <button key={o.label} type="button" onClick={() => onChange(value === o.date ? '' : o.date)} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] tracking-tight font-medium transition-all duration-150 focus:outline-none border" style={{ backgroundColor: value === o.date ? '#0071E3' : 'transparent', color: value === o.date ? 'white' : darkMode ? 'rgba(255,255,255,0.6)' : 'rgba(29,29,31,0.50)', borderColor: value === o.date ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.10)' }}>
           {o.label}
         </button>
       ))}
-      <label className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] tracking-tight font-medium cursor-pointer border relative" style={{ backgroundColor: value && !opts.find((o) => o.date === value) ? '#0071E3' : 'transparent', color: value && !opts.find((o) => o.date === value) ? 'white' : 'rgba(29,29,31,0.50)', borderColor: value && !opts.find((o) => o.date === value) ? '#0071E3' : 'rgba(0,0,0,0.10)' }}>
+      <label className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] tracking-tight font-medium cursor-pointer border relative" style={{ backgroundColor: value && !opts.find((o) => o.date === value) ? '#0071E3' : 'transparent', color: value && !opts.find((o) => o.date === value) ? 'white' : darkMode ? 'rgba(255,255,255,0.6)' : 'rgba(29,29,31,0.50)', borderColor: value && !opts.find((o) => o.date === value) ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.10)' }}>
         <Calendar size={11} strokeWidth={2} />
         {value && !opts.find((o) => o.date === value)
           ? new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
           : 'Pick date'}
-        <input type="date" aria-label="Custom due date" value={value} min={t} onChange={(e) => onChange(e.target.value)} className="absolute inset-0 opacity-0 w-full h-full cursor-pointer" style={{ colorScheme: 'light' }} />
+        <input type="date" aria-label="Custom due date" value={value} min={t} onChange={(e) => onChange(e.target.value)} className="absolute inset-0 opacity-0 w-full h-full cursor-pointer" style={{ colorScheme: darkMode ? 'dark' : 'light' }} />
       </label>
       {value && (
-        <motion.button initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={SPRING} type="button" onClick={() => onChange('')} className="flex items-center justify-center w-6 h-6 rounded-full hover:bg-red-50 hover:text-red-400 text-[#1D1D1F]/30 focus:outline-none">
+        <motion.button initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={SPRING} type="button" onClick={() => onChange('')} className="flex items-center justify-center w-6 h-6 rounded-full hover:bg-red-500/10 hover:text-red-400 text-gray-400 focus:outline-none">
           <X size={12} strokeWidth={2.5} />
         </motion.button>
       )}
@@ -165,7 +165,7 @@ function DateShortcuts({ value, onChange }) {
   )
 }
 
-function TodoItem({ todo, onToggle, onDelete, onNoteChange, onDueDateChange }) {
+function TodoItem({ todo, onToggle, onDelete, onNoteChange, onDueDateChange, darkMode }) {
   const [hovered, setHovered] = useState(false)
   const [noteOpen, setNoteOpen] = useState(false)
   const noteRef = useRef(null)
@@ -180,12 +180,12 @@ function TodoItem({ todo, onToggle, onDelete, onNoteChange, onDueDateChange }) {
   }
 
   return (
-    <Reorder.Item value={todo} id={todo.id} as="li" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -16, scale: 0.97 }} transition={SOFT} whileDrag={{ scale: 1.02, boxShadow: '0 8px 28px rgba(0,0,0,0.10)', zIndex: 50 }} layout onHoverStart={() => setHovered(true)} onHoverEnd={() => setHovered(false)} className="bg-white/85 backdrop-blur-sm border border-gray-200/60 rounded-2xl shadow-sm overflow-hidden select-none" style={{ listStyle: 'none', cursor: 'grab' }}>
+    <Reorder.Item value={todo} id={todo.id} as="li" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -16, scale: 0.97 }} transition={SOFT} whileDrag={{ scale: 1.02, boxShadow: '0 8px 28px rgba(0,0,0,0.15)', zIndex: 50 }} layout onHoverStart={() => setHovered(true)} onHoverEnd={() => setHovered(false)} className={`backdrop-blur-sm border rounded-2xl shadow-xs overflow-hidden select-none ${darkMode ? 'bg-[#1C1C1E]/90 border-gray-800' : 'bg-white/85 border-gray-200/60'}`} style={{ listStyle: 'none', cursor: 'grab' }}>
       <div className="flex items-start gap-3.5 px-4 py-3.5">
         <div className="mt-0.5"><Checkbox id={todo.id} checked={todo.completed} onChange={() => onToggle(todo.id)} /></div>
 
         <div className="flex-1 min-w-0">
-          <p className="text-[15px] leading-snug tracking-tight transition-all duration-300" style={{ color: todo.completed ? 'rgba(29,29,31,0.32)' : '#1D1D1F', textDecoration: todo.completed ? 'line-through' : 'none', textDecorationColor: 'rgba(0,0,0,0.22)' }}>
+          <p className="text-[15px] leading-snug tracking-tight transition-all duration-300" style={{ color: todo.completed ? darkMode ? 'rgba(255,255,255,0.3)' : 'rgba(29,29,31,0.32)' : darkMode ? '#FFFFFF' : '#1D1D1F', textDecoration: todo.completed ? 'line-through' : 'none', textDecorationColor: darkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.22)' }}>
             {todo.text}
           </p>
           <div className="flex items-center flex-wrap gap-1.5 mt-1">
@@ -195,23 +195,23 @@ function TodoItem({ todo, onToggle, onDelete, onNoteChange, onDueDateChange }) {
               </span>
             )}
             {todo.dueDate && <DueBadge dueDate={todo.dueDate} completed={todo.completed} showClear={hovered} onClear={() => onDueDateChange(todo.id, null)} />}
-            {hasNote && !noteOpen && <span className="text-[11.5px] text-[#1D1D1F]/35 leading-snug tracking-tight truncate max-w-[160px]">{todo.note}</span>}
+            {hasNote && !noteOpen && <span className={`text-[11.5px] leading-snug tracking-tight truncate max-w-[160px] ${darkMode ? 'text-white/40' : 'text-[#1D1D1F]/35'}`}>{todo.note}</span>}
           </div>
         </div>
 
         <div className="flex items-center gap-1 mt-0.5">
           <AnimatePresence>
             {(hovered || todo.dueDate) && (
-              <motion.button key="date-btn" id={`date-${todo.id}`} aria-label="Set due date" initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.75 }} transition={SPRING} onClick={() => dateRef.current?.showPicker?.()} className="relative flex items-center justify-center w-7 h-7 rounded-full transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3]" style={{ backgroundColor: todo.dueDate ? 'rgba(0,113,227,0.08)' : 'transparent', color: todo.dueDate ? '#0071E3' : 'rgba(0,0,0,0.28)' }}>
+              <motion.button key="date-btn" id={`date-${todo.id}`} aria-label="Set due date" initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.75 }} transition={SPRING} onClick={() => dateRef.current?.showPicker?.()} className="relative flex items-center justify-center w-7 h-7 rounded-full transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3]" style={{ backgroundColor: todo.dueDate ? 'rgba(0,113,227,0.12)' : 'transparent', color: todo.dueDate ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.28)' }}>
                 <Calendar size={13} strokeWidth={1.9} />
-                <input ref={dateRef} type="date" aria-label="Due date" value={todo.dueDate ?? ''} min={todayStr()} onChange={(e) => onDueDateChange(todo.id, e.target.value || null)} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" style={{ colorScheme: 'light' }} />
+                <input ref={dateRef} type="date" aria-label="Due date" value={todo.dueDate ?? ''} min={todayStr()} onChange={(e) => onDueDateChange(todo.id, e.target.value || null)} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" style={{ colorScheme: darkMode ? 'dark' : 'light' }} />
               </motion.button>
             )}
           </AnimatePresence>
 
           <AnimatePresence>
             {(hovered || hasNote) && (
-              <motion.button key="note-btn" id={`note-${todo.id}`} aria-label={noteOpen ? 'Close note' : 'Add or edit note'} initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.75 }} transition={SPRING} onClick={() => setNoteOpen((o) => !o)} className="flex items-center justify-center w-7 h-7 rounded-full transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3]" style={{ backgroundColor: noteOpen ? 'rgba(0,113,227,0.10)' : hasNote ? 'rgba(0,113,227,0.06)' : 'transparent', color: noteOpen || hasNote ? '#0071E3' : 'rgba(0,0,0,0.28)' }}>
+              <motion.button key="note-btn" id={`note-${todo.id}`} aria-label={noteOpen ? 'Close note' : 'Add or edit note'} initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.75 }} transition={SPRING} onClick={() => setNoteOpen((o) => !o)} className="flex items-center justify-center w-7 h-7 rounded-full transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3]" style={{ backgroundColor: noteOpen ? 'rgba(0,113,227,0.15)' : hasNote ? 'rgba(0,113,227,0.10)' : 'transparent', color: noteOpen || hasNote ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.28)' }}>
                 <FileText size={13} strokeWidth={1.9} />
               </motion.button>
             )}
@@ -219,7 +219,7 @@ function TodoItem({ todo, onToggle, onDelete, onNoteChange, onDueDateChange }) {
 
           <AnimatePresence>
             {hovered && (
-              <motion.button key="del" id={`del-${todo.id}`} aria-label="Delete task" initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.75 }} transition={SPRING} onClick={() => onDelete(todo.id)} className="flex items-center justify-center w-7 h-7 rounded-full hover:bg-red-50 text-gray-300 hover:text-red-400 transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400">
+              <motion.button key="del" id={`del-${todo.id}`} aria-label="Delete task" initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.75 }} transition={SPRING} onClick={() => onDelete(todo.id)} className="flex items-center justify-center w-7 h-7 rounded-full hover:bg-red-500/10 text-gray-400 hover:text-red-400 transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400">
                 <Trash2 size={13} strokeWidth={1.8} />
               </motion.button>
             )}
@@ -231,14 +231,14 @@ function TodoItem({ todo, onToggle, onDelete, onNoteChange, onDueDateChange }) {
         {noteOpen && (
           <motion.div key="note-panel" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ ...SOFT, opacity: { duration: 0.15 } }} className="overflow-hidden">
             <div className="px-4 pb-3 pt-0">
-              <div className="h-px bg-gray-100 mb-2.5" />
+              <div className={`h-px mb-2.5 ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`} />
               <div className="flex items-start gap-2">
-                <FileText size={12} strokeWidth={1.8} className="mt-2.5 flex-shrink-0 text-[#0071E3]/50" />
-                <textarea ref={noteRef} id={`note-input-${todo.id}`} value={todo.note} onChange={(e) => { onNoteChange(todo.id, e.target.value); autoGrow() }} onKeyDown={(e) => { if (e.key === 'Escape') setNoteOpen(false) }} placeholder="Add a note…" rows={2} className="flex-1 resize-none bg-transparent border-none outline-none text-[13.5px] tracking-tight text-[#1D1D1F]/75 placeholder:text-[#1D1D1F]/25 leading-relaxed caret-[#0071E3] mt-1.5" />
+                <FileText size={12} strokeWidth={1.8} className="mt-2.5 flex-shrink-0 text-[#0071E3]/70" />
+                <textarea ref={noteRef} id={`note-input-${todo.id}`} value={todo.note} onChange={(e) => { onNoteChange(todo.id, e.target.value); autoGrow() }} onKeyDown={(e) => { if (e.key === 'Escape') setNoteOpen(false) }} placeholder="Add a note…" rows={2} className={`flex-1 resize-none bg-transparent border-none outline-none text-[13.5px] tracking-tight leading-relaxed caret-[#0071E3] mt-1.5 ${darkMode ? 'text-white/80 placeholder:text-white/20' : 'text-[#1D1D1F]/75 placeholder:text-[#1D1D1F]/25'}`} />
               </div>
               <div className="flex justify-between items-center mt-2">
-                <span className="text-[11px] text-[#1D1D1F]/25 tracking-tight">Saved to device · Esc to close</span>
-                <button onClick={() => setNoteOpen(false)} className="flex items-center gap-1 text-[11px] text-[#1D1D1F]/35 hover:text-[#0071E3] transition-colors tracking-tight focus:outline-none">
+                <span className={`text-[11px] tracking-tight ${darkMode ? 'text-white/30' : 'text-[#1D1D1F]/25'}`}>Saved to device · Esc to close</span>
+                <button onClick={() => setNoteOpen(false)} className="flex items-center gap-1 text-[11px] text-[#0071E3] hover:underline transition-colors tracking-tight focus:outline-none">
                   <ChevronDown size={11} /> Done
                 </button>
               </div>
@@ -250,16 +250,16 @@ function TodoItem({ todo, onToggle, onDelete, onNoteChange, onDueDateChange }) {
   )
 }
 
-function FilterPill({ label, active, onClick, id }) {
+function FilterPill({ label, active, onClick, id, darkMode }) {
   return (
-    <button id={id} onClick={onClick} className="relative px-3.5 py-1 rounded-full text-[13px] tracking-tight font-medium transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3]" style={{ color: active ? '#0071E3' : 'rgba(29,29,31,0.42)' }}>
-      {active && <motion.span layoutId="filter-pill" className="absolute inset-0 rounded-full bg-blue-50" transition={SPRING} />}
+    <button id={id} onClick={onClick} className="relative px-3.5 py-1 rounded-full text-[13px] tracking-tight font-medium transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3]" style={{ color: active ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.5)' : 'rgba(29,29,31,0.42)' }}>
+      {active && <motion.span layoutId="filter-pill" className={`absolute inset-0 rounded-full ${darkMode ? 'bg-blue-900/40' : 'bg-blue-50'}`} transition={SPRING} />}
       <span className="relative z-10">{label}</span>
     </button>
   )
 }
 
-function EmptyState({ filter, isSearch }) {
+function EmptyState({ filter, isSearch, darkMode }) {
   const msgs = {
     all: isSearch ? 'No tasks match your search query.' : 'Your canvas is blank. Add your first task above.',
     active: 'Nothing left to do. Enjoy the moment.',
@@ -267,7 +267,7 @@ function EmptyState({ filter, isSearch }) {
   }
   return (
     <motion.div key="empty" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={SOFT} className="flex flex-col items-center justify-center py-14">
-      <p className="text-[14px] text-[#1D1D1F]/35 tracking-tight">{msgs[filter]}</p>
+      <p className={`text-[14px] tracking-tight ${darkMode ? 'text-white/40' : 'text-[#1D1D1F]/35'}`}>{msgs[filter]}</p>
     </motion.div>
   )
 }
@@ -304,7 +304,16 @@ export default function App({ user, onLogout }) {
   const [inputFocused, setInputFocused] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('focus-theme') === 'dark')
   const inputRef = useRef(null)
+
+  const toggleDarkMode = () => {
+    setDarkMode((prev) => {
+      const next = !prev
+      localStorage.setItem('focus-theme', next ? 'dark' : 'light')
+      return next
+    })
+  }
 
   useEffect(() => {
     fetchTodos(user.id).then((data) => {
@@ -402,28 +411,31 @@ export default function App({ user, onLogout }) {
   const color = avatarColor(user.id)
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] antialiased">
-      <motion.header initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ ...SOFT, delay: 0.05 }} className="sticky top-0 z-40 w-full border-b border-gray-200/50 bg-white/70 backdrop-blur-xl">
+    <div className={`min-h-screen antialiased transition-colors duration-300 ${darkMode ? 'bg-[#000000] text-white' : 'bg-[#F5F5F7] text-[#1D1D1F]'}`}>
+      <motion.header initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} transition={{ ...SOFT, delay: 0.05 }} className={`sticky top-0 z-40 w-full border-b backdrop-blur-xl transition-colors ${darkMode ? 'bg-[#1C1C1E]/70 border-gray-800' : 'bg-white/70 border-gray-200/50'}`}>
         <div className="max-w-2xl mx-auto px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <motion.div whileHover={{ rotate: 20, scale: 1.15 }} transition={SPRING} className="w-7 h-7 rounded-lg bg-[#0071E3] flex items-center justify-center shadow-sm">
               <Sparkles size={14} className="text-white" strokeWidth={2} />
             </motion.div>
-            <span className="text-[15px] font-semibold tracking-tight text-[#1D1D1F]">Focus</span>
+            <span className="text-[15px] font-semibold tracking-tight">Focus</span>
           </div>
           <div className="flex items-center gap-2.5">
             <AnimatePresence>
               {overdueCount > 0 && (
-                <motion.span key="ov" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={SPRING} className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium tracking-tight" style={{ backgroundColor: 'rgba(255,59,48,0.08)', color: '#FF3B30' }}>
+                <motion.span key="ov" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={SPRING} className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-medium tracking-tight" style={{ backgroundColor: 'rgba(255,59,48,0.12)', color: '#FF3B30' }}>
                   <span className="w-1.5 h-1.5 rounded-full bg-[#FF3B30]" />
                   {overdueCount} overdue
                 </motion.span>
               )}
             </AnimatePresence>
-            <span className="text-[13px] text-[#1D1D1F]/40 tracking-tight hidden sm:block">
+            <span className={`text-[13px] tracking-tight hidden sm:block ${darkMode ? 'text-white/40' : 'text-[#1D1D1F]/40'}`}>
               {activeCount > 0 ? `${activeCount} remaining` : completedCount > 0 ? '✓ All done' : ''}
             </span>
-            <button onClick={() => setShortcutsOpen(true)} title="Keyboard shortcuts (?)" className="w-8 h-8 rounded-full flex items-center justify-center text-[#1D1D1F]/40 hover:text-[#0071E3] hover:bg-blue-50 transition-colors focus:outline-none">
+            <button onClick={toggleDarkMode} title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'} className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors focus:outline-none ${darkMode ? 'text-amber-400 hover:bg-white/10' : 'text-[#1D1D1F]/40 hover:text-[#0071E3] hover:bg-blue-50'}`}>
+              {darkMode ? <Sun size={17} strokeWidth={1.8} /> : <Moon size={17} strokeWidth={1.8} />}
+            </button>
+            <button onClick={() => setShortcutsOpen(true)} title="Keyboard shortcuts (?)" className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors focus:outline-none ${darkMode ? 'text-white/40 hover:text-[#0071E3] hover:bg-white/10' : 'text-[#1D1D1F]/40 hover:text-[#0071E3] hover:bg-blue-50'}`}>
               <HelpCircle size={17} strokeWidth={1.8} />
             </button>
             <motion.button id="profile-btn" whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.93 }} transition={SPRING} onClick={() => setProfileOpen(true)} aria-label="Open profile" className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[12px] font-bold shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3] focus-visible:ring-offset-2" style={{ background: `linear-gradient(135deg,${color},${color}aa)` }}>
@@ -436,33 +448,32 @@ export default function App({ user, onLogout }) {
       <main className="max-w-2xl mx-auto px-6 pt-12 pb-28">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ ...SOFT, delay: 0.10 }} className="mb-8">
           <p className="text-[12px] font-medium text-[#0071E3] tracking-widest uppercase mb-1.5">{formatDate(new Date())}</p>
-          <h1 className="text-[34px] font-bold tracking-tighter leading-none text-[#1D1D1F]">
+          <h1 className="text-[34px] font-bold tracking-tighter leading-none">
             My Tasks
           </h1>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ ...SOFT, delay: 0.16 }} className="mb-7">
-          <p className="text-[11px] font-semibold text-[#1D1D1F]/35 tracking-widest uppercase mb-2 ml-1">Add Task</p>
-          <motion.div animate={{ boxShadow: inputFocused ? '0 0 0 3px rgba(0,113,227,0.15),0 2px 12px rgba(0,0,0,0.06)' : '0 1px 4px rgba(0,0,0,0.06)', borderColor: inputFocused ? 'rgba(0,113,227,0.45)' : 'rgba(0,0,0,0.10)' }} transition={{ duration: 0.18 }} className="relative bg-white rounded-2xl border p-4">
+          <p className={`text-[11px] font-semibold tracking-widest uppercase mb-2 ml-1 ${darkMode ? 'text-white/35' : 'text-[#1D1D1F]/35'}`}>Add Task</p>
+          <motion.div animate={{ boxShadow: inputFocused ? '0 0 0 3px rgba(0,113,227,0.18),0 2px 12px rgba(0,0,0,0.1)' : '0 1px 4px rgba(0,0,0,0.06)', borderColor: inputFocused ? 'rgba(0,113,227,0.5)' : darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.10)' }} transition={{ duration: 0.18 }} className={`relative rounded-2xl border p-4 transition-colors ${darkMode ? 'bg-[#1C1C1E]' : 'bg-white'}`}>
             <div className="flex items-center gap-3 mb-3">
-              <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-dashed flex items-center justify-center transition-colors duration-150" style={{ borderColor: inputFocused ? '#0071E3' : 'rgba(0,0,0,0.20)' }}>
-                <Plus size={12} strokeWidth={2.5} style={{ color: inputFocused ? '#0071E3' : 'rgba(0,0,0,0.30)' }} />
+              <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-dashed flex items-center justify-center transition-colors duration-150" style={{ borderColor: inputFocused ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.20)' }}>
+                <Plus size={12} strokeWidth={2.5} style={{ color: inputFocused ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.30)' }} />
               </div>
-              <input ref={inputRef} id="task-input" type="text" value={input} onChange={(e) => { setInput(e.target.value); setShowSlash(e.target.value.startsWith('/')) }} onKeyDown={handleKeyDown} onFocus={() => setInputFocused(true)} onBlur={() => setInputFocused(false)} placeholder="What do you need to get done?" aria-label="New task input" autoComplete="off" className="flex-1 bg-transparent border-none outline-none text-[16px] tracking-tight text-[#1D1D1F] placeholder:text-[#1D1D1F]/28 caret-[#0071E3]" />
+              <input ref={inputRef} id="task-input" type="text" value={input} onChange={(e) => { setInput(e.target.value); setShowSlash(e.target.value.startsWith('/')) }} onKeyDown={handleKeyDown} onFocus={() => setInputFocused(true)} onBlur={() => setInputFocused(false)} placeholder="What do you need to get done?" aria-label="New task input" autoComplete="off" className={`flex-1 bg-transparent border-none outline-none text-[16px] tracking-tight caret-[#0071E3] ${darkMode ? 'text-white placeholder:text-white/30' : 'text-[#1D1D1F] placeholder:text-[#1D1D1F]/28'}`} />
               <AnimatePresence>
                 {input.length > 0 && (
-                  <motion.span initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }} transition={SPRING} className="hidden sm:flex items-center px-2 py-0.5 rounded-md bg-gray-100 text-gray-400 text-[11px] font-mono border border-gray-200/70 select-none">
+                  <motion.span initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }} transition={SPRING} className={`hidden sm:flex items-center px-2 py-0.5 rounded-md text-[11px] font-mono border select-none ${darkMode ? 'bg-gray-800 text-gray-300 border-gray-700' : 'bg-gray-100 text-gray-400 border-gray-200/70'}`}>
                     ↵
                   </motion.span>
                 )}
               </AnimatePresence>
             </div>
 
-            {/* Tag selector pills */}
             <div className="mb-2">
               <div className="flex items-center gap-1.5 mb-1.5">
-                <Tag size={11} strokeWidth={2} className="text-[#1D1D1F]/35" />
-                <span className="text-[11px] font-semibold text-[#1D1D1F]/35 tracking-widest uppercase">Tag</span>
+                <Tag size={11} strokeWidth={2} className={darkMode ? 'text-white/35' : 'text-[#1D1D1F]/35'} />
+                <span className={`text-[11px] font-semibold tracking-widest uppercase ${darkMode ? 'text-white/35' : 'text-[#1D1D1F]/35'}`}>Tag</span>
               </div>
               <div className="flex items-center gap-1.5 flex-wrap">
                 {Object.entries(TAG_CONFIG).map(([key, cfg]) => (
@@ -485,19 +496,19 @@ export default function App({ user, onLogout }) {
 
             <div className="mb-1">
               <div className="flex items-center gap-1.5 mb-2">
-                <Calendar size={11} strokeWidth={2} className="text-[#1D1D1F]/35" />
-                <span className="text-[11px] font-semibold text-[#1D1D1F]/35 tracking-widest uppercase">Due date</span>
+                <Calendar size={11} strokeWidth={2} className={darkMode ? 'text-white/35' : 'text-[#1D1D1F]/35'} />
+                <span className={`text-[11px] font-semibold tracking-widest uppercase ${darkMode ? 'text-white/35' : 'text-[#1D1D1F]/35'}`}>Due date</span>
               </div>
-              <DateShortcuts value={dueInput} onChange={setDueInput} />
+              <DateShortcuts value={dueInput} onChange={setDueInput} darkMode={darkMode} />
             </div>
 
             <motion.div animate={{ opacity: inputFocused ? 1 : 0, height: inputFocused ? 'auto' : 0 }} transition={{ duration: 0.18 }} className="overflow-hidden">
-              <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-                <span className="text-[12px] text-[#1D1D1F]/30 tracking-tight">
-                  <kbd className="font-semibold text-[#1D1D1F]/50">Enter</kbd> to add ·{' '}
-                  <kbd className="font-semibold text-[#1D1D1F]/50">Esc</kbd> to cancel
+              <div className={`flex items-center justify-between mt-3 pt-3 border-t ${darkMode ? 'border-gray-800' : 'border-gray-100'}`}>
+                <span className={`text-[12px] tracking-tight ${darkMode ? 'text-white/30' : 'text-[#1D1D1F]/30'}`}>
+                  <kbd className="font-semibold opacity-70">Enter</kbd> to add ·{' '}
+                  <kbd className="font-semibold opacity-70">Esc</kbd> to cancel
                 </span>
-                <motion.button id="add-task-btn" whileTap={{ scale: 0.93 }} transition={SPRING} onClick={handleAdd} disabled={input.trim().length === 0} className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[13px] font-medium tracking-tight transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3]" style={{ backgroundColor: input.trim() ? '#0071E3' : 'rgba(0,0,0,0.06)', color: input.trim() ? 'white' : 'rgba(0,0,0,0.28)', cursor: input.trim() ? 'pointer' : 'default' }}>
+                <motion.button id="add-task-btn" whileTap={{ scale: 0.93 }} transition={SPRING} onClick={handleAdd} disabled={input.trim().length === 0} className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-[13px] font-medium tracking-tight transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3]" style={{ backgroundColor: input.trim() ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', color: input.trim() ? 'white' : darkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.28)', cursor: input.trim() ? 'pointer' : 'default' }}>
                   <Plus size={13} strokeWidth={2.5} /> Add Task
                 </motion.button>
               </div>
@@ -506,21 +517,20 @@ export default function App({ user, onLogout }) {
           </motion.div>
         </motion.div>
 
-        {/* Filter pills, Sort selector & Search input */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.22 }} className="flex items-center justify-between gap-3 mb-4 flex-wrap">
           <div className="flex items-center gap-0.5" role="group" aria-label="Filter tasks">
             {['all', 'active', 'completed'].map((f) => (
-              <FilterPill key={f} id={`filter-${f}`} label={f.charAt(0).toUpperCase() + f.slice(1)} active={filter === f} onClick={() => setFilter(f)} />
+              <FilterPill key={f} id={`filter-${f}`} label={f.charAt(0).toUpperCase() + f.slice(1)} active={filter === f} onClick={() => setFilter(f)} darkMode={darkMode} />
             ))}
           </div>
 
           <div className="flex items-center gap-2">
             <div className="relative flex items-center">
-              <ArrowUpDown size={13} className="absolute left-2.5 text-[#1D1D1F]/35 pointer-events-none" />
+              <ArrowUpDown size={13} className={`absolute left-2.5 pointer-events-none ${darkMode ? 'text-white/40' : 'text-[#1D1D1F]/35'}`} />
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="pl-8 pr-3 py-1 rounded-full text-[12.5px] bg-white border border-gray-200/80 outline-none text-[#1D1D1F]/70 hover:text-[#1D1D1F] cursor-pointer appearance-none transition-all"
+                className={`pl-8 pr-3 py-1 rounded-full text-[12.5px] border outline-none cursor-pointer appearance-none transition-all ${darkMode ? 'bg-[#1C1C1E] border-gray-800 text-white/80 hover:text-white' : 'bg-white border-gray-200/80 text-[#1D1D1F]/70 hover:text-[#1D1D1F]'}`}
               >
                 <option value="date-desc">Newest first</option>
                 <option value="date-asc">Oldest first</option>
@@ -530,16 +540,16 @@ export default function App({ user, onLogout }) {
             </div>
 
             <div className="relative flex items-center">
-              <Search size={13} className="absolute left-2.5 text-[#1D1D1F]/35" />
+              <Search size={13} className={`absolute left-2.5 ${darkMode ? 'text-white/40' : 'text-[#1D1D1F]/35'}`} />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search tasks…"
-                className="pl-8 pr-7 py-1 rounded-full text-[12.5px] bg-white border border-gray-200/80 outline-none text-[#1D1D1F] placeholder:text-[#1D1D1F]/30 focus:border-[#0071E3] transition-all w-32 sm:w-40"
+                className={`pl-8 pr-7 py-1 rounded-full text-[12.5px] border outline-none focus:border-[#0071E3] transition-all w-32 sm:w-40 ${darkMode ? 'bg-[#1C1C1E] border-gray-800 text-white placeholder:text-white/30' : 'bg-white border-gray-200/80 text-[#1D1D1F] placeholder:text-[#1D1D1F]/30'}`}
               />
               {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="absolute right-2 text-[#1D1D1F]/30 hover:text-[#1D1D1F]/70">
+                <button onClick={() => setSearchQuery('')} className={`absolute right-2 ${darkMode ? 'text-white/40 hover:text-white' : 'text-[#1D1D1F]/30 hover:text-[#1D1D1F]/70'}`}>
                   <X size={12} />
                 </button>
               )}
@@ -547,7 +557,7 @@ export default function App({ user, onLogout }) {
 
             <AnimatePresence>
               {completedCount > 0 && (
-                <motion.button id="clear-btn" key="clear" initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }} transition={SPRING} onClick={handleClearCompleted} className="text-[13px] text-[#1D1D1F]/32 hover:text-red-400 tracking-tight transition-colors duration-150 focus:outline-none whitespace-nowrap">
+                <motion.button id="clear-btn" key="clear" initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }} transition={SPRING} onClick={handleClearCompleted} className={`text-[13px] hover:text-red-400 tracking-tight transition-colors duration-150 focus:outline-none whitespace-nowrap ${darkMode ? 'text-white/40' : 'text-[#1D1D1F]/32'}`}>
                   Clear done
                 </motion.button>
               )}
@@ -563,7 +573,7 @@ export default function App({ user, onLogout }) {
           ) : (
             <AnimatePresence mode="wait">
               {sorted.length === 0 ? (
-                <EmptyState key="empty" filter={filter} isSearch={searchQuery.trim().length > 0} />
+                <EmptyState key="empty" filter={filter} isSearch={searchQuery.trim().length > 0} darkMode={darkMode} />
               ) : (
                 <Reorder.Group axis="y" values={sorted} onReorder={(newOrder) => {
                   setTodos((prev) => {
@@ -573,7 +583,7 @@ export default function App({ user, onLogout }) {
                 }} as="ul" className="flex flex-col gap-2.5 p-0 m-0" style={{ listStyle: 'none' }}>
                   <AnimatePresence>
                     {sorted.map((todo) => (
-                      <TodoItem key={todo.id} todo={todo} onToggle={handleToggle} onDelete={handleDelete} onNoteChange={handleNoteChange} onDueDateChange={handleDueDateChange} />
+                      <TodoItem key={todo.id} todo={todo} onToggle={handleToggle} onDelete={handleDelete} onNoteChange={handleNoteChange} onDueDateChange={handleDueDateChange} darkMode={darkMode} />
                     ))}
                   </AnimatePresence>
                 </Reorder.Group>
@@ -585,10 +595,10 @@ export default function App({ user, onLogout }) {
         {todos.length > 0 && !loadingData && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }} className="mt-10">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-[12px] text-[#1D1D1F]/35 tracking-tight">Progress</span>
-              <span className="text-[12px] font-medium text-[#1D1D1F]/45 tracking-tight">{completedCount}/{todos.length} completed</span>
+              <span className={`text-[12px] tracking-tight ${darkMode ? 'text-white/40' : 'text-[#1D1D1F]/35'}`}>Progress</span>
+              <span className={`text-[12px] font-medium tracking-tight ${darkMode ? 'text-white/60' : 'text-[#1D1D1F]/45'}`}>{completedCount}/{todos.length} completed</span>
             </div>
-            <div className="h-1 w-full bg-gray-200/70 rounded-full overflow-hidden">
+            <div className={`h-1 w-full rounded-full overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-gray-200/70'}`}>
               <motion.div className="h-full rounded-full bg-gradient-to-r from-[#0071E3] to-[#34AADC]" initial={{ width: 0 }} animate={{ width: `${todos.length > 0 ? (completedCount / todos.length) * 100 : 0}%` }} transition={SOFT} />
             </div>
           </motion.div>
@@ -599,16 +609,16 @@ export default function App({ user, onLogout }) {
         <Plus size={22} strokeWidth={2.2} />
       </motion.button>
 
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 px-4 py-2 rounded-2xl bg-white/60 backdrop-blur-md border border-gray-200/50 shadow-sm pointer-events-none">
-        <span className="text-[11px] text-[#1D1D1F]/30 tracking-tight whitespace-nowrap"><kbd className="font-mono">Space</kbd> focus</span>
-        <span className="w-px h-3 bg-gray-300/70" />
-        <span className="text-[11px] text-[#1D1D1F]/30 tracking-tight whitespace-nowrap"><kbd className="font-mono">?</kbd> shortcuts</span>
-        <span className="w-px h-3 bg-gray-300/70" />
-        <span className="text-[11px] text-[#1D1D1F]/30 tracking-tight whitespace-nowrap">💾 saved locally</span>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className={`fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 px-4 py-2 rounded-2xl backdrop-blur-md border shadow-sm pointer-events-none ${darkMode ? 'bg-[#1C1C1E]/80 border-gray-800 text-white/40' : 'bg-white/60 border-gray-200/50 text-[#1D1D1F]/30'}`}>
+        <span className="text-[11px] tracking-tight whitespace-nowrap"><kbd className="font-mono">Space</kbd> focus</span>
+        <span className={`w-px h-3 ${darkMode ? 'bg-gray-800' : 'bg-gray-300/70'}`} />
+        <span className="text-[11px] tracking-tight whitespace-nowrap"><kbd className="font-mono">?</kbd> shortcuts</span>
+        <span className={`w-px h-3 ${darkMode ? 'bg-gray-800' : 'bg-gray-300/70'}`} />
+        <span className="text-[11px] tracking-tight whitespace-nowrap">💾 saved locally</span>
       </motion.div>
 
       <ProfilePanel user={user} taskCount={todos.length} completedCount={completedCount} open={profileOpen} onClose={() => setProfileOpen(false)} onLogout={handleLogout} />
-      <ShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+      <ShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} darkMode={darkMode} />
     </div>
   )
 }
