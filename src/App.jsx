@@ -328,6 +328,8 @@ export default function App({ user, onLogout }) {
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('focus-theme') === 'dark')
   const inputRef = useRef(null)
 
+  const isAddingActive = inputFocused || input.trim().length > 0 || dueInput !== '' || selectedTag !== null
+
   const toggleDarkMode = () => {
     setDarkMode((prev) => {
       const next = !prev
@@ -496,10 +498,10 @@ export default function App({ user, onLogout }) {
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ ...SOFT, delay: 0.16 }} className="mb-7">
           <p className={`text-[11px] font-semibold tracking-widest uppercase mb-2 ml-1 ${darkMode ? 'text-white/35' : 'text-[#1D1D1F]/35'}`}>Add Task</p>
-          <motion.div animate={{ boxShadow: inputFocused ? '0 0 0 3px rgba(0,113,227,0.18),0 2px 12px rgba(0,0,0,0.1)' : '0 1px 4px rgba(0,0,0,0.06)', borderColor: inputFocused ? 'rgba(0,113,227,0.5)' : darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.10)' }} transition={{ duration: 0.18 }} className={`relative rounded-2xl border p-4 transition-colors ${darkMode ? 'bg-[#1C1C1E]' : 'bg-white'}`}>
+          <motion.div animate={{ boxShadow: isAddingActive ? '0 0 0 3px rgba(0,113,227,0.18),0 2px 12px rgba(0,0,0,0.1)' : '0 1px 4px rgba(0,0,0,0.06)', borderColor: isAddingActive ? 'rgba(0,113,227,0.5)' : darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.10)' }} transition={{ duration: 0.18 }} className={`relative rounded-2xl border p-4 transition-colors ${darkMode ? 'bg-[#1C1C1E]' : 'bg-white'}`}>
             <div className="flex items-center gap-3 mb-3">
-              <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-dashed flex items-center justify-center transition-colors duration-150" style={{ borderColor: inputFocused ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.20)' }}>
-                <Plus size={12} strokeWidth={2.5} style={{ color: inputFocused ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.30)' }} />
+              <div className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-dashed flex items-center justify-center transition-colors duration-150" style={{ borderColor: isAddingActive ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.20)' }}>
+                <Plus size={12} strokeWidth={2.5} style={{ color: isAddingActive ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.30)' }} />
               </div>
               <input ref={inputRef} id="task-input" type="text" value={input} onChange={(e) => { setInput(e.target.value); setShowSlash(e.target.value.startsWith('/')) }} onKeyDown={handleKeyDown} onFocus={() => setInputFocused(true)} onBlur={() => setInputFocused(false)} placeholder="What do you need to get done?" aria-label="New task input" autoComplete="off" className={`flex-1 bg-transparent border-none outline-none text-[16px] tracking-tight caret-[#0071E3] ${darkMode ? 'text-white placeholder:text-white/30' : 'text-[#1D1D1F] placeholder:text-[#1D1D1F]/28'}`} />
               <AnimatePresence>
@@ -543,7 +545,7 @@ export default function App({ user, onLogout }) {
               <DateShortcuts value={dueInput} onChange={setDueInput} darkMode={darkMode} />
             </div>
 
-            <motion.div animate={{ opacity: inputFocused ? 1 : 0, height: inputFocused ? 'auto' : 0 }} transition={{ duration: 0.18 }} className="overflow-hidden">
+            <motion.div animate={{ opacity: isAddingActive ? 1 : 0, height: isAddingActive ? 'auto' : 0 }} transition={{ duration: 0.18 }} className="overflow-hidden">
               <div className={`flex items-center justify-between mt-3 pt-3 border-t ${darkMode ? 'border-gray-800' : 'border-gray-100'}`}>
                 <span className={`text-[12px] tracking-tight ${darkMode ? 'text-white/30' : 'text-[#1D1D1F]/30'}`}>
                   <kbd className="font-semibold opacity-70">Enter</kbd> to add ·{' '}
