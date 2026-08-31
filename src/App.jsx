@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { AnimatePresence, motion, Reorder } from 'framer-motion'
-import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X, HelpCircle, Search, ArrowUpDown, Tag, Sun, Moon } from 'lucide-react'
+import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X, HelpCircle, Search, ArrowUpDown, Tag, Sun, Moon, Pin } from 'lucide-react'
 import {
   fetchTodos, insertTodo, updateTodo, deleteTodo,
   deleteCompletedTodos, logout,
@@ -165,7 +165,7 @@ function DateShortcuts({ value, onChange, darkMode }) {
   )
 }
 
-function TodoItem({ todo, onToggle, onDelete, onNoteChange, onDueDateChange, darkMode }) {
+function TodoItem({ todo, onToggle, onDelete, onNoteChange, onDueDateChange, onPinToggle, darkMode }) {
   const [hovered, setHovered] = useState(false)
   const [noteOpen, setNoteOpen] = useState(false)
   const noteRef = useRef(null)
@@ -180,14 +180,19 @@ function TodoItem({ todo, onToggle, onDelete, onNoteChange, onDueDateChange, dar
   }
 
   return (
-    <Reorder.Item value={todo} id={todo.id} as="li" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -16, scale: 0.97 }} transition={SOFT} whileDrag={{ scale: 1.02, boxShadow: '0 8px 28px rgba(0,0,0,0.15)', zIndex: 50 }} layout onHoverStart={() => setHovered(true)} onHoverEnd={() => setHovered(false)} className={`backdrop-blur-sm border rounded-2xl shadow-xs overflow-hidden select-none ${darkMode ? 'bg-[#1C1C1E]/90 border-gray-800' : 'bg-white/85 border-gray-200/60'}`} style={{ listStyle: 'none', cursor: 'grab' }}>
+    <Reorder.Item value={todo} id={todo.id} as="li" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -16, scale: 0.97 }} transition={SOFT} whileDrag={{ scale: 1.02, boxShadow: '0 8px 28px rgba(0,0,0,0.15)', zIndex: 50 }} layout onHoverStart={() => setHovered(true)} onHoverEnd={() => setHovered(false)} className={`backdrop-blur-sm border rounded-2xl shadow-xs overflow-hidden select-none relative ${darkMode ? 'bg-[#1C1C1E]/90 border-gray-800' : 'bg-white/85 border-gray-200/60'}`} style={{ listStyle: 'none', cursor: 'grab' }}>
       <div className="flex items-start gap-3.5 px-4 py-3.5">
         <div className="mt-0.5"><Checkbox id={todo.id} checked={todo.completed} onChange={() => onToggle(todo.id)} /></div>
 
         <div className="flex-1 min-w-0">
-          <p className="text-[15px] leading-snug tracking-tight transition-all duration-300" style={{ color: todo.completed ? darkMode ? 'rgba(255,255,255,0.3)' : 'rgba(29,29,31,0.32)' : darkMode ? '#FFFFFF' : '#1D1D1F', textDecoration: todo.completed ? 'line-through' : 'none', textDecorationColor: darkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.22)' }}>
-            {todo.text}
-          </p>
+          <div className="flex items-center gap-1.5">
+            {todo.pinned && (
+              <Pin size={12} className="text-[#0071E3] flex-shrink-0 fill-[#0071E3]/20" />
+            )}
+            <p className="text-[15px] leading-snug tracking-tight transition-all duration-300" style={{ color: todo.completed ? darkMode ? 'rgba(255,255,255,0.3)' : 'rgba(29,29,31,0.32)' : darkMode ? '#FFFFFF' : '#1D1D1F', textDecoration: todo.completed ? 'line-through' : 'none', textDecorationColor: darkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.22)' }}>
+              {todo.text}
+            </p>
+          </div>
           <div className="flex items-center flex-wrap gap-1.5 mt-1">
             {todo.tag && TAG_CONFIG[todo.tag] && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium tracking-tight" style={{ backgroundColor: TAG_CONFIG[todo.tag].bg, color: TAG_CONFIG[todo.tag].text }}>
@@ -200,6 +205,14 @@ function TodoItem({ todo, onToggle, onDelete, onNoteChange, onDueDateChange, dar
         </div>
 
         <div className="flex items-center gap-1 mt-0.5">
+          <AnimatePresence>
+            {(hovered || todo.pinned) && (
+              <motion.button key="pin-btn" aria-label={todo.pinned ? 'Unpin task' : 'Pin task'} initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.75 }} transition={SPRING} onClick={() => onPinToggle(todo.id)} className="flex items-center justify-center w-7 h-7 rounded-full transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3]" style={{ backgroundColor: todo.pinned ? 'rgba(0,113,227,0.12)' : 'transparent', color: todo.pinned ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.28)' }}>
+                <Pin size={13} strokeWidth={1.9} className={todo.pinned ? 'fill-[#0071E3]' : ''} />
+              </motion.button>
+            )}
+          </AnimatePresence>
+
           <AnimatePresence>
             {(hovered || todo.dueDate) && (
               <motion.button key="date-btn" id={`date-${todo.id}`} aria-label="Set due date" initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.75 }} transition={SPRING} onClick={() => dateRef.current?.showPicker?.()} className="relative flex items-center justify-center w-7 h-7 rounded-full transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3]" style={{ backgroundColor: todo.dueDate ? 'rgba(0,113,227,0.12)' : 'transparent', color: todo.dueDate ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.28)' }}>
@@ -331,6 +344,7 @@ export default function App({ user, onLogout }) {
   })
 
   const sorted = [...filtered].sort((a, b) => {
+    if (a.pinned !== b.pinned) return a.pinned ? -1 : 1
     if (sortBy === 'due-date') {
       if (!a.dueDate) return 1
       if (!b.dueDate) return -1
@@ -359,10 +373,10 @@ export default function App({ user, onLogout }) {
 
   const handleAdd = useCallback(async () => {
     const text = input.trim(); if (!text) return
-    const temp = { id: crypto.randomUUID(), text, completed: false, note: '', tag: selectedTag, dueDate: dueInput || null, createdAt: new Date().toISOString() }
+    const temp = { id: crypto.randomUUID(), text, completed: false, note: '', tag: selectedTag, pinned: false, dueDate: dueInput || null, createdAt: new Date().toISOString() }
     setTodos((p) => [temp, ...p])
     setInput(''); setDueInput(''); setSelectedTag(null); setShowSlash(false)
-    const saved = await insertTodo(user.id, { text, completed: false, note: '', tag: selectedTag, dueDate: dueInput || null })
+    const saved = await insertTodo(user.id, { text, completed: false, note: '', tag: selectedTag, pinned: false, dueDate: dueInput || null })
     if (saved) setTodos((p) => p.map((t) => (t.id === temp.id ? saved : t)))
   }, [input, dueInput, selectedTag, user.id])
 
@@ -371,6 +385,13 @@ export default function App({ user, onLogout }) {
     const newVal = !todo.completed
     setTodos((p) => p.map((t) => (t.id === id ? { ...t, completed: newVal } : t)))
     await updateTodo(id, { completed: newVal })
+  }, [todos])
+
+  const handlePinToggle = useCallback(async (id) => {
+    const todo = todos.find((t) => t.id === id); if (!todo) return
+    const newVal = !todo.pinned
+    setTodos((p) => p.map((t) => (t.id === id ? { ...t, pinned: newVal } : t)))
+    await updateTodo(id, { pinned: newVal })
   }, [todos])
 
   const handleDelete = useCallback(async (id) => {
@@ -583,7 +604,7 @@ export default function App({ user, onLogout }) {
                 }} as="ul" className="flex flex-col gap-2.5 p-0 m-0" style={{ listStyle: 'none' }}>
                   <AnimatePresence>
                     {sorted.map((todo) => (
-                      <TodoItem key={todo.id} todo={todo} onToggle={handleToggle} onDelete={handleDelete} onNoteChange={handleNoteChange} onDueDateChange={handleDueDateChange} darkMode={darkMode} />
+                      <TodoItem key={todo.id} todo={todo} onToggle={handleToggle} onDelete={handleDelete} onNoteChange={handleNoteChange} onDueDateChange={handleDueDateChange} onPinToggle={handlePinToggle} darkMode={darkMode} />
                     ))}
                   </AnimatePresence>
                 </Reorder.Group>
