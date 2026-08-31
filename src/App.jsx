@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { AnimatePresence, motion, Reorder } from 'framer-motion'
-import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X, HelpCircle, Search, ArrowUpDown, Tag, Sun, Moon, Pin } from 'lucide-react'
+import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X, HelpCircle, Search, ArrowUpDown, Tag, Sun, Moon, Pin, Copy } from 'lucide-react'
 import {
   fetchTodos, insertTodo, updateTodo, deleteTodo,
   deleteCompletedTodos, logout,
@@ -165,7 +165,7 @@ function DateShortcuts({ value, onChange, darkMode }) {
   )
 }
 
-function TodoItem({ todo, onToggle, onDelete, onNoteChange, onDueDateChange, onPinToggle, darkMode }) {
+function TodoItem({ todo, onToggle, onDelete, onDuplicate, onNoteChange, onDueDateChange, onPinToggle, darkMode }) {
   const [hovered, setHovered] = useState(false)
   const [noteOpen, setNoteOpen] = useState(false)
   const noteRef = useRef(null)
@@ -209,6 +209,14 @@ function TodoItem({ todo, onToggle, onDelete, onNoteChange, onDueDateChange, onP
             {(hovered || todo.pinned) && (
               <motion.button key="pin-btn" aria-label={todo.pinned ? 'Unpin task' : 'Pin task'} initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.75 }} transition={SPRING} onClick={() => onPinToggle(todo.id)} className="flex items-center justify-center w-7 h-7 rounded-full transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3]" style={{ backgroundColor: todo.pinned ? 'rgba(0,113,227,0.12)' : 'transparent', color: todo.pinned ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.28)' }}>
                 <Pin size={13} strokeWidth={1.9} className={todo.pinned ? 'fill-[#0071E3]' : ''} />
+              </motion.button>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {hovered && (
+              <motion.button key="dup-btn" aria-label="Duplicate task" initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.75 }} transition={SPRING} onClick={() => onDuplicate(todo.id)} className="flex items-center justify-center w-7 h-7 rounded-full transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3]" style={{ color: darkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.28)' }}>
+                <Copy size={13} strokeWidth={1.9} />
               </motion.button>
             )}
           </AnimatePresence>
@@ -393,6 +401,18 @@ export default function App({ user, onLogout }) {
     setTodos((p) => p.map((t) => (t.id === id ? { ...t, pinned: newVal } : t)))
     await updateTodo(id, { pinned: newVal })
   }, [todos])
+
+  const handleDuplicate = useCallback(async (id) => {
+    const target = todos.find((t) => t.id === id); if (!target) return
+    const cloned = {
+      ...target,
+      id: crypto.randomUUID(),
+      text: `${target.text} (Copy)`,
+      createdAt: new Date().toISOString(),
+    }
+    setTodos((p) => [cloned, ...p])
+    await insertTodo(user.id, cloned)
+  }, [todos, user.id])
 
   const handleDelete = useCallback(async (id) => {
     setTodos((p) => p.filter((t) => t.id !== id))
@@ -604,7 +624,7 @@ export default function App({ user, onLogout }) {
                 }} as="ul" className="flex flex-col gap-2.5 p-0 m-0" style={{ listStyle: 'none' }}>
                   <AnimatePresence>
                     {sorted.map((todo) => (
-                      <TodoItem key={todo.id} todo={todo} onToggle={handleToggle} onDelete={handleDelete} onNoteChange={handleNoteChange} onDueDateChange={handleDueDateChange} onPinToggle={handlePinToggle} darkMode={darkMode} />
+                      <TodoItem key={todo.id} todo={todo} onToggle={handleToggle} onDelete={handleDelete} onDuplicate={handleDuplicate} onNoteChange={handleNoteChange} onDueDateChange={handleDueDateChange} onPinToggle={handlePinToggle} darkMode={darkMode} />
                     ))}
                   </AnimatePresence>
                 </Reorder.Group>
