@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { AnimatePresence, motion, Reorder } from 'framer-motion'
-import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X, HelpCircle, Search, ArrowUpDown, Tag, Sun, Moon, Pin, Copy } from 'lucide-react'
+import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X, HelpCircle, Search, ArrowUpDown, Tag, Sun, Moon, Pin, Copy, Pencil } from 'lucide-react'
 import {
   fetchTodos, insertTodo, updateTodo, deleteTodo,
   deleteCompletedTodos, logout,
@@ -165,14 +165,28 @@ function DateShortcuts({ value, onChange, darkMode }) {
   )
 }
 
-function TodoItem({ todo, onToggle, onDelete, onDuplicate, onNoteChange, onDueDateChange, onPinToggle, darkMode }) {
+function TodoItem({ todo, onToggle, onDelete, onDuplicate, onTextChange, onNoteChange, onDueDateChange, onPinToggle, darkMode }) {
   const [hovered, setHovered] = useState(false)
   const [noteOpen, setNoteOpen] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editText, setEditText] = useState(todo.text)
   const noteRef = useRef(null)
   const dateRef = useRef(null)
+  const editInputRef = useRef(null)
   const hasNote = todo.note.trim().length > 0
 
   useEffect(() => { if (noteOpen) noteRef.current?.focus() }, [noteOpen])
+  useEffect(() => { if (isEditing) editInputRef.current?.focus() }, [isEditing])
+
+  const handleSaveEdit = () => {
+    const trimmed = editText.trim()
+    if (trimmed && trimmed !== todo.text) {
+      onTextChange(todo.id, trimmed)
+    } else {
+      setEditText(todo.text)
+    }
+    setIsEditing(false)
+  }
 
   const autoGrow = () => {
     const el = noteRef.current; if (!el) return
@@ -189,9 +203,29 @@ function TodoItem({ todo, onToggle, onDelete, onDuplicate, onNoteChange, onDueDa
             {todo.pinned && (
               <Pin size={12} className="text-[#0071E3] flex-shrink-0 fill-[#0071E3]/20" />
             )}
-            <p className="text-[15px] leading-snug tracking-tight transition-all duration-300" style={{ color: todo.completed ? darkMode ? 'rgba(255,255,255,0.3)' : 'rgba(29,29,31,0.32)' : darkMode ? '#FFFFFF' : '#1D1D1F', textDecoration: todo.completed ? 'line-through' : 'none', textDecorationColor: darkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.22)' }}>
-              {todo.text}
-            </p>
+            {isEditing ? (
+              <input
+                ref={editInputRef}
+                type="text"
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                onBlur={handleSaveEdit}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSaveEdit()
+                  if (e.key === 'Escape') { setEditText(todo.text); setIsEditing(false) }
+                }}
+                className={`w-full bg-transparent border-b border-[#0071E3] outline-none text-[15px] leading-snug tracking-tight ${darkMode ? 'text-white' : 'text-[#1D1D1F]'}`}
+              />
+            ) : (
+              <p
+                onDoubleClick={() => setIsEditing(true)}
+                title="Double click to edit"
+                className="text-[15px] leading-snug tracking-tight transition-all duration-300 cursor-pointer"
+                style={{ color: todo.completed ? darkMode ? 'rgba(255,255,255,0.3)' : 'rgba(29,29,31,0.32)' : darkMode ? '#FFFFFF' : '#1D1D1F', textDecoration: todo.completed ? 'line-through' : 'none', textDecorationColor: darkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.22)' }}
+              >
+                {todo.text}
+              </p>
+            )}
           </div>
           <div className="flex items-center flex-wrap gap-1.5 mt-1">
             {todo.tag && TAG_CONFIG[todo.tag] && (
@@ -209,6 +243,14 @@ function TodoItem({ todo, onToggle, onDelete, onDuplicate, onNoteChange, onDueDa
             {(hovered || todo.pinned) && (
               <motion.button key="pin-btn" aria-label={todo.pinned ? 'Unpin task' : 'Pin task'} initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.75 }} transition={SPRING} onClick={() => onPinToggle(todo.id)} className="flex items-center justify-center w-7 h-7 rounded-full transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3]" style={{ backgroundColor: todo.pinned ? 'rgba(0,113,227,0.12)' : 'transparent', color: todo.pinned ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.28)' }}>
                 <Pin size={13} strokeWidth={1.9} className={todo.pinned ? 'fill-[#0071E3]' : ''} />
+              </motion.button>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {hovered && (
+              <motion.button key="edit-btn" aria-label="Edit task" initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.75 }} transition={SPRING} onClick={() => setIsEditing(true)} className="flex items-center justify-center w-7 h-7 rounded-full transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3]" style={{ color: darkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.28)' }}>
+                <Pencil size={13} strokeWidth={1.9} />
               </motion.button>
             )}
           </AnimatePresence>
@@ -415,6 +457,11 @@ export default function App({ user, onLogout }) {
     setTodos((p) => [cloned, ...p])
     await insertTodo(user.id, cloned)
   }, [todos, user.id])
+
+  const handleTextChange = useCallback(async (id, text) => {
+    setTodos((p) => p.map((t) => (t.id === id ? { ...t, text } : t)))
+    await updateTodo(id, { text })
+  }, [])
 
   const handleDelete = useCallback(async (id) => {
     setTodos((p) => p.filter((t) => t.id !== id))
@@ -626,7 +673,7 @@ export default function App({ user, onLogout }) {
                 }} as="ul" className="flex flex-col gap-2.5 p-0 m-0" style={{ listStyle: 'none' }}>
                   <AnimatePresence>
                     {sorted.map((todo) => (
-                      <TodoItem key={todo.id} todo={todo} onToggle={handleToggle} onDelete={handleDelete} onDuplicate={handleDuplicate} onNoteChange={handleNoteChange} onDueDateChange={handleDueDateChange} onPinToggle={handlePinToggle} darkMode={darkMode} />
+                      <TodoItem key={todo.id} todo={todo} onToggle={handleToggle} onDelete={handleDelete} onDuplicate={handleDuplicate} onTextChange={handleTextChange} onNoteChange={handleNoteChange} onDueDateChange={handleDueDateChange} onPinToggle={handlePinToggle} darkMode={darkMode} />
                     ))}
                   </AnimatePresence>
                 </Reorder.Group>
