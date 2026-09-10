@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { AnimatePresence, motion, Reorder } from 'framer-motion'
-import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X, HelpCircle, Search, ArrowUpDown, Tag, Sun, Moon, Pin, Copy, Pencil } from 'lucide-react'
+import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X, HelpCircle, Search, ArrowUpDown, Tag, Sun, Moon, Pin, Copy, Pencil, Flame } from 'lucide-react'
 import {
   fetchTodos, insertTodo, updateTodo, deleteTodo,
   deleteCompletedTodos, logout,
@@ -20,6 +20,12 @@ const TAG_CONFIG = {
   personal: { label: 'Personal', bg: 'rgba(175,82,222,0.12)', text: '#AF52DE' },
   idea: { label: 'Idea', bg: 'rgba(255,149,0,0.12)', text: '#FF9500' },
   urgent: { label: 'Urgent', bg: 'rgba(255,59,48,0.12)', text: '#FF3B30' },
+}
+
+const PRIORITY_CONFIG = {
+  high: { label: 'High', color: '#FF3B30', bg: 'rgba(255,59,48,0.12)', rank: 3 },
+  medium: { label: 'Medium', color: '#FF9500', bg: 'rgba(255,149,0,0.12)', rank: 2 },
+  low: { label: 'Low', color: '#34C759', bg: 'rgba(52,199,89,0.12)', rank: 1 },
 }
 
 function dueDateLabel(iso) {
@@ -228,6 +234,11 @@ function TodoItem({ todo, onToggle, onDelete, onDuplicate, onTextChange, onNoteC
             )}
           </div>
           <div className="flex items-center flex-wrap gap-1.5 mt-1">
+            {todo.priority && PRIORITY_CONFIG[todo.priority] && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold tracking-tight" style={{ backgroundColor: PRIORITY_CONFIG[todo.priority].bg, color: PRIORITY_CONFIG[todo.priority].color }}>
+                {PRIORITY_CONFIG[todo.priority].label} Priority
+              </span>
+            )}
             {todo.tag && TAG_CONFIG[todo.tag] && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium tracking-tight" style={{ backgroundColor: TAG_CONFIG[todo.tag].bg, color: TAG_CONFIG[todo.tag].text }}>
                 {TAG_CONFIG[todo.tag].label}
@@ -360,6 +371,7 @@ export default function App({ user, onLogout }) {
   const [input, setInput] = useState('')
   const [dueInput, setDueInput] = useState('')
   const [selectedTag, setSelectedTag] = useState(null)
+  const [selectedPriority, setSelectedPriority] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('date-desc')
   const [filter, setFilter] = useState('all')
@@ -370,7 +382,7 @@ export default function App({ user, onLogout }) {
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('focus-theme') === 'dark')
   const inputRef = useRef(null)
 
-  const isAddingActive = inputFocused || input.trim().length > 0 || dueInput !== '' || selectedTag !== null
+  const isAddingActive = inputFocused || input.trim().length > 0 || dueInput !== '' || selectedTag !== null || selectedPriority !== null
 
   const toggleDarkMode = () => {
     setDarkMode((prev) => {
@@ -397,6 +409,11 @@ export default function App({ user, onLogout }) {
 
   const sorted = [...filtered].sort((a, b) => {
     if (a.pinned !== b.pinned) return a.pinned ? -1 : 1
+    if (sortBy === 'priority') {
+      const rankA = a.priority ? PRIORITY_CONFIG[a.priority].rank : 0
+      const rankB = b.priority ? PRIORITY_CONFIG[b.priority].rank : 0
+      return rankB - rankA
+    }
     if (sortBy === 'due-date') {
       if (!a.dueDate) return 1
       if (!b.dueDate) return -1
@@ -425,12 +442,12 @@ export default function App({ user, onLogout }) {
 
   const handleAdd = useCallback(async () => {
     const text = input.trim(); if (!text) return
-    const temp = { id: crypto.randomUUID(), text, completed: false, note: '', tag: selectedTag, pinned: false, dueDate: dueInput || null, createdAt: new Date().toISOString() }
+    const temp = { id: crypto.randomUUID(), text, completed: false, note: '', tag: selectedTag, priority: selectedPriority, pinned: false, dueDate: dueInput || null, createdAt: new Date().toISOString() }
     setTodos((p) => [temp, ...p])
-    setInput(''); setDueInput(''); setSelectedTag(null); setShowSlash(false)
-    const saved = await insertTodo(user.id, { text, completed: false, note: '', tag: selectedTag, pinned: false, dueDate: dueInput || null })
+    setInput(''); setDueInput(''); setSelectedTag(null); setSelectedPriority(null); setShowSlash(false)
+    const saved = await insertTodo(user.id, { text, completed: false, note: '', tag: selectedTag, priority: selectedPriority, pinned: false, dueDate: dueInput || null })
     if (saved) setTodos((p) => p.map((t) => (t.id === temp.id ? saved : t)))
-  }, [input, dueInput, selectedTag, user.id])
+  }, [input, dueInput, selectedTag, selectedPriority, user.id])
 
   const handleToggle = useCallback(async (id) => {
     const todo = todos.find((t) => t.id === id); if (!todo) return
@@ -487,7 +504,7 @@ export default function App({ user, onLogout }) {
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') handleAdd()
-    if (e.key === 'Escape') { setInput(''); setDueInput(''); setSelectedTag(null); setShowSlash(false); inputRef.current?.blur() }
+    if (e.key === 'Escape') { setInput(''); setDueInput(''); setSelectedTag(null); setSelectedPriority(null); setShowSlash(false); inputRef.current?.blur() }
   }
 
   useEffect(() => {
@@ -560,6 +577,31 @@ export default function App({ user, onLogout }) {
               </AnimatePresence>
             </div>
 
+            {/* Priority Selector */}
+            <div className="mb-2.5">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <Flame size={11} strokeWidth={2} className={darkMode ? 'text-white/35' : 'text-[#1D1D1F]/35'} />
+                <span className={`text-[11px] font-semibold tracking-widest uppercase ${darkMode ? 'text-white/35' : 'text-[#1D1D1F]/35'}`}>Priority</span>
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {Object.entries(PRIORITY_CONFIG).map(([key, cfg]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setSelectedPriority(selectedPriority === key ? null : key)}
+                    className="px-2.5 py-0.5 rounded-full text-[11.5px] font-medium tracking-tight transition-all border"
+                    style={{
+                      backgroundColor: selectedPriority === key ? cfg.color : 'transparent',
+                      color: selectedPriority === key ? 'white' : cfg.color,
+                      borderColor: selectedPriority === key ? cfg.color : `${cfg.color}40`,
+                    }}
+                  >
+                    {cfg.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="mb-2">
               <div className="flex items-center gap-1.5 mb-1.5">
                 <Tag size={11} strokeWidth={2} className={darkMode ? 'text-white/35' : 'text-[#1D1D1F]/35'} />
@@ -623,6 +665,7 @@ export default function App({ user, onLogout }) {
                 className={`pl-8 pr-3 py-1 rounded-full text-[12.5px] border outline-none cursor-pointer appearance-none transition-all ${darkMode ? 'bg-[#1C1C1E] border-gray-800 text-white/80 hover:text-white' : 'bg-white border-gray-200/80 text-[#1D1D1F]/70 hover:text-[#1D1D1F]'}`}
               >
                 <option value="date-desc">Newest first</option>
+                <option value="priority">Priority (High to Low)</option>
                 <option value="date-asc">Oldest first</option>
                 <option value="due-date">Due date</option>
                 <option value="alpha">Alphabetical</option>
