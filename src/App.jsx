@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { AnimatePresence, motion, Reorder } from 'framer-motion'
-import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X, HelpCircle, Search, ArrowUpDown, Tag, Sun, Moon, Pin, Copy, Pencil, Flame } from 'lucide-react'
+import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X, HelpCircle, Search, ArrowUpDown, Tag, Sun, Moon, Pin, Copy, Pencil, Flame, Clock } from 'lucide-react'
 import {
   fetchTodos, insertTodo, updateTodo, deleteTodo,
   deleteCompletedTodos, logout,
@@ -338,10 +338,12 @@ function EmptyState({ filter, isSearch, darkMode }) {
     all: isSearch ? 'No tasks match your search query.' : 'Your canvas is blank. Add your first task above.',
     active: 'Nothing left to do. Enjoy the moment.',
     completed: 'No completed tasks yet.',
+    today: 'No tasks due today.',
+    overdue: 'No overdue tasks!',
   }
   return (
     <motion.div key="empty" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={SOFT} className="flex flex-col items-center justify-center py-14">
-      <p className={`text-[14px] tracking-tight ${darkMode ? 'text-white/40' : 'text-[#1D1D1F]/35'}`}>{msgs[filter]}</p>
+      <p className={`text-[14px] tracking-tight ${darkMode ? 'text-white/40' : 'text-[#1D1D1F]/35'}`}>{msgs[filter] || msgs.all}</p>
     </motion.div>
   )
 }
@@ -400,7 +402,13 @@ export default function App({ user, onLogout }) {
   }, [user.id])
 
   const filtered = todos.filter((t) => {
-    const matchesFilter = filter === 'active' ? !t.completed : filter === 'completed' ? t.completed : true
+    const today = todayStr()
+    let matchesFilter = true
+    if (filter === 'active') matchesFilter = !t.completed
+    else if (filter === 'completed') matchesFilter = t.completed
+    else if (filter === 'today') matchesFilter = !t.completed && t.dueDate === today
+    else if (filter === 'overdue') matchesFilter = !t.completed && t.dueDate && t.dueDate < today
+
     const matchesSearch = searchQuery.trim() === '' ||
       t.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (t.note && t.note.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -649,9 +657,10 @@ export default function App({ user, onLogout }) {
           </motion.div>
         </motion.div>
 
+        {/* Filter pills, Sort selector & Search input */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.22 }} className="flex items-center justify-between gap-3 mb-4 flex-wrap">
-          <div className="flex items-center gap-0.5" role="group" aria-label="Filter tasks">
-            {['all', 'active', 'completed'].map((f) => (
+          <div className="flex items-center gap-0.5 flex-wrap" role="group" aria-label="Filter tasks">
+            {['all', 'active', 'completed', 'today', 'overdue'].map((f) => (
               <FilterPill key={f} id={`filter-${f}`} label={f.charAt(0).toUpperCase() + f.slice(1)} active={filter === f} onClick={() => setFilter(f)} darkMode={darkMode} />
             ))}
           </div>
