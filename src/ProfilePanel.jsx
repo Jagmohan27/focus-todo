@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Copy, Check, Download, Upload } from 'lucide-react'
+import { X, Copy, Check, Download, Upload, RotateCcw } from 'lucide-react'
 import { useState, useRef } from 'react'
 
 const SPRING = { type: 'spring', stiffness: 380, damping: 28 }
@@ -45,6 +45,7 @@ export default function ProfilePanel({ user, taskCount, completedCount, open, on
   const color = avatarColor(user?.id)
   const fileInputRef = useRef(null)
   const [importStatus, setImportStatus] = useState('')
+  const [confirmClear, setConfirmClear] = useState(false)
 
   const handleExport = () => {
     try {
@@ -87,6 +88,16 @@ export default function ProfilePanel({ user, taskCount, completedCount, open, on
       }
     }
     reader.readAsText(file)
+  }
+
+  const handleResetAll = () => {
+    if (!confirmClear) {
+      setConfirmClear(true)
+      setTimeout(() => setConfirmClear(false), 3000)
+      return
+    }
+    localStorage.removeItem('focus-todos-local-v1')
+    window.location.reload()
   }
 
   return (
@@ -169,7 +180,7 @@ export default function ProfilePanel({ user, taskCount, completedCount, open, on
               {/* Data Backup & Restore */}
               <div className="space-y-2 pt-2">
                 <p className="text-[11px] font-semibold tracking-widest uppercase text-[#1D1D1F]/35 px-1">
-                  Backup & Restore
+                  Backup & Reset
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -194,6 +205,17 @@ export default function ProfilePanel({ user, taskCount, completedCount, open, on
                     className="hidden"
                   />
                 </div>
+                <button
+                  onClick={handleResetAll}
+                  className={`w-full flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border transition-all text-[12.5px] font-medium focus:outline-none ${
+                    confirmClear
+                      ? 'bg-red-500 text-white border-red-500 animate-pulse'
+                      : 'bg-white text-red-500 border-red-100 hover:bg-red-50'
+                  }`}
+                >
+                  <RotateCcw size={13} />
+                  {confirmClear ? 'Click again to confirm reset' : 'Clear All Data'}
+                </button>
               </div>
             </div>
           </motion.div>
