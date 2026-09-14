@@ -186,44 +186,12 @@ function Checkbox({ checked, onChange, id }) {
 
 function DateShortcuts({ value, onChange, timeValue, onTimeChange, darkMode }) {
   const t = todayStr()
-  const dateInputRef = useRef(null)
-  const timeInputRef = useRef(null)
 
   const opts = [
     { label: 'Today', date: t },
     { label: 'Tomorrow', date: new Date(Date.now() + 86_400_000).toISOString().slice(0, 10) },
     { label: 'Next week', date: new Date(Date.now() + 7 * 86_400_000).toISOString().slice(0, 10) },
   ]
-
-  const triggerDatePicker = () => {
-    if (dateInputRef.current) {
-      try {
-        if (typeof dateInputRef.current.showPicker === 'function') {
-          dateInputRef.current.showPicker()
-        } else {
-          dateInputRef.current.focus()
-          dateInputRef.current.click()
-        }
-      } catch {
-        dateInputRef.current.focus()
-      }
-    }
-  }
-
-  const triggerTimePicker = () => {
-    if (timeInputRef.current) {
-      try {
-        if (typeof timeInputRef.current.showPicker === 'function') {
-          timeInputRef.current.showPicker()
-        } else {
-          timeInputRef.current.focus()
-          timeInputRef.current.click()
-        }
-      } catch {
-        timeInputRef.current.focus()
-      }
-    }
-  }
 
   return (
     <div className="space-y-2">
@@ -233,31 +201,28 @@ function DateShortcuts({ value, onChange, timeValue, onTimeChange, darkMode }) {
             {o.label}
           </button>
         ))}
-        <button
-          type="button"
-          onClick={triggerDatePicker}
-          className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] tracking-tight font-medium border relative cursor-pointer"
-          style={{
-            backgroundColor: value && !opts.find((o) => o.date === value) ? '#0071E3' : 'transparent',
-            color: value && !opts.find((o) => o.date === value) ? 'white' : darkMode ? 'rgba(255,255,255,0.6)' : 'rgba(29,29,31,0.50)',
-            borderColor: value && !opts.find((o) => o.date === value) ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.10)',
-          }}
+        <label
+          className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[12px] tracking-tight font-medium border cursor-pointer transition-colors ${
+            value && !opts.find((o) => o.date === value)
+              ? 'bg-[#0071E3] text-white border-[#0071E3]'
+              : darkMode
+              ? 'bg-[#2C2C2E] border-gray-700 text-white/80'
+              : 'bg-gray-50 border-gray-200 text-[#1D1D1F]/70'
+          }`}
         >
-          <Calendar size={11} strokeWidth={2} />
-          {value && !opts.find((o) => o.date === value)
-            ? new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-            : 'Pick date'}
+          <Calendar size={11} strokeWidth={2} className={value && !opts.find((o) => o.date === value) ? 'text-white' : 'text-[#0071E3]'} />
           <input
-            ref={dateInputRef}
             type="date"
             aria-label="Custom due date"
-            value={value}
+            value={value || ''}
             min={t}
             onChange={(e) => onChange(e.target.value)}
-            className="absolute inset-0 opacity-0 pointer-events-none"
+            className={`bg-transparent text-[12px] font-medium outline-none cursor-pointer border-none p-0 ${
+              value && !opts.find((o) => o.date === value) ? 'text-white' : darkMode ? 'text-white' : 'text-gray-900'
+            }`}
             style={{ colorScheme: darkMode ? 'dark' : 'light' }}
           />
-        </button>
+        </label>
         {value && (
           <motion.button initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={SPRING} type="button" onClick={() => onChange('')} className="flex items-center justify-center w-6 h-6 rounded-full hover:bg-red-500/10 hover:text-red-400 text-gray-400 focus:outline-none">
             <X size={12} strokeWidth={2.5} />
@@ -265,31 +230,29 @@ function DateShortcuts({ value, onChange, timeValue, onTimeChange, darkMode }) {
         )}
       </div>
 
-      {/* Time Presets & Custom Picker */}
+      {/* Time Presets & Custom Time Input */}
       <div className="flex items-center gap-1.5 flex-wrap">
-        <button
-          type="button"
-          onClick={triggerTimePicker}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] tracking-tight font-medium border relative cursor-pointer transition-colors ${
+        <label
+          className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[12px] tracking-tight font-medium border cursor-pointer transition-colors ${
             timeValue
               ? 'bg-[#0071E3] text-white border-[#0071E3]'
               : darkMode
-              ? 'bg-[#2C2C2E] border-gray-700 text-white/80 hover:border-gray-500'
-              : 'bg-gray-50 border-gray-200 text-[#1D1D1F]/70 hover:border-gray-400'
+              ? 'bg-[#2C2C2E] border-gray-700 text-white/80'
+              : 'bg-gray-50 border-gray-200 text-[#1D1D1F]/70'
           }`}
         >
           <Clock size={11} strokeWidth={2} className={timeValue ? 'text-white' : 'text-[#0071E3]'} />
-          <span>{timeValue ? formatDueTime(timeValue) : 'Custom time'}</span>
           <input
-            ref={timeInputRef}
             type="time"
             aria-label="Pick due time"
             value={timeValue || ''}
             onChange={(e) => onTimeChange(e.target.value)}
-            className="absolute inset-0 opacity-0 pointer-events-none"
+            className={`bg-transparent text-[12px] font-medium outline-none cursor-pointer border-none p-0 ${
+              timeValue ? 'text-white' : darkMode ? 'text-white' : 'text-gray-900'
+            }`}
             style={{ colorScheme: darkMode ? 'dark' : 'light' }}
           />
-        </button>
+        </label>
 
         {TIME_PRESETS.map((p) => (
           <button
@@ -320,7 +283,6 @@ function DateShortcuts({ value, onChange, timeValue, onTimeChange, darkMode }) {
 function TimePickerMenu({ value, onChange, darkMode }) {
   const [open, setOpen] = useState(false)
   const menuRef = useRef(null)
-  const customTimeRef = useRef(null)
 
   useEffect(() => {
     const handleOutside = (e) => {
@@ -331,21 +293,6 @@ function TimePickerMenu({ value, onChange, darkMode }) {
     if (open) document.addEventListener('mousedown', handleOutside)
     return () => document.removeEventListener('mousedown', handleOutside)
   }, [open])
-
-  const triggerCustomPicker = () => {
-    if (customTimeRef.current) {
-      try {
-        if (typeof customTimeRef.current.showPicker === 'function') {
-          customTimeRef.current.showPicker()
-        } else {
-          customTimeRef.current.focus()
-          customTimeRef.current.click()
-        }
-      } catch {
-        customTimeRef.current.focus()
-      }
-    }
-  }
 
   return (
     <div ref={menuRef} className="relative inline-block">
@@ -400,29 +347,25 @@ function TimePickerMenu({ value, onChange, darkMode }) {
             </div>
 
             <div className={`pt-2 mt-1 border-t ${darkMode ? 'border-gray-800' : 'border-gray-100'}`}>
-              <div className="flex items-center justify-between gap-1.5">
-                <button
-                  type="button"
-                  onClick={triggerCustomPicker}
-                  className="flex-1 flex items-center justify-between px-2.5 py-1.5 rounded-xl text-[11.5px] font-medium border cursor-pointer hover:border-[#0071E3] transition-colors relative"
-                >
-                  <div className="flex items-center gap-1.5">
-                    <Clock size={11} className="text-[#0071E3]" />
-                    <span>{value ? formatDueTime(value) : 'Custom Time'}</span>
-                  </div>
-                  <input
-                    ref={customTimeRef}
-                    type="time"
-                    value={value || ''}
-                    onChange={(e) => {
-                      onChange(e.target.value || null)
-                      setOpen(false)
-                    }}
-                    className="absolute inset-0 opacity-0 pointer-events-none"
-                    style={{ colorScheme: darkMode ? 'dark' : 'light' }}
-                  />
-                </button>
-
+              <div className="text-[10.5px] font-semibold tracking-wider uppercase px-1 mb-1.5 text-gray-400">
+                Custom Time
+              </div>
+              <div className={`flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-xl border transition-colors ${
+                darkMode ? 'bg-[#2C2C2E] border-gray-700 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'
+              }`}>
+                <Clock size={13} className="text-[#0071E3] flex-shrink-0" />
+                <input
+                  type="time"
+                  aria-label="Custom task time"
+                  value={value || ''}
+                  onChange={(e) => {
+                    onChange(e.target.value || null)
+                  }}
+                  className={`w-full bg-transparent text-[12.5px] font-medium outline-none cursor-pointer border-none p-0 ${
+                    darkMode ? 'text-white' : 'text-gray-900'
+                  }`}
+                  style={{ colorScheme: darkMode ? 'dark' : 'light' }}
+                />
                 {value && (
                   <button
                     type="button"
@@ -430,9 +373,10 @@ function TimePickerMenu({ value, onChange, darkMode }) {
                       onChange(null)
                       setOpen(false)
                     }}
-                    className="px-2 py-1.5 rounded-xl text-[11.5px] font-medium text-red-500 hover:bg-red-500/10 transition-colors"
+                    className="p-1 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
+                    title="Clear time"
                   >
-                    Clear
+                    <X size={12} />
                   </button>
                 )}
               </div>
