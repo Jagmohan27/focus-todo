@@ -184,8 +184,166 @@ function Checkbox({ checked, onChange, id }) {
   )
 }
 
+function CustomTimePickerModal({ value, onChange, darkMode, onClose }) {
+  const parseTime = (timeStr) => {
+    if (!timeStr) return { hour: '09', minute: '00', ampm: 'AM' }
+    const [hStr, mStr] = timeStr.split(':')
+    let h = parseInt(hStr, 10)
+    const ampm = h >= 12 ? 'PM' : 'AM'
+    h = h % 12
+    if (h === 0) h = 12
+    return {
+      hour: h < 10 ? `0${h}` : `${h}`,
+      minute: mStr || '00',
+      ampm,
+    }
+  }
+
+  const current = parseTime(value)
+  const [selectedHour, setSelectedHour] = useState(current.hour)
+  const [selectedMinute, setSelectedMinute] = useState(current.minute)
+  const [selectedAmPm, setSelectedAmPm] = useState(current.ampm)
+
+  const applyCustomTime = (h, m, period) => {
+    let hourNum = parseInt(h, 10)
+    if (period === 'PM' && hourNum < 12) hourNum += 12
+    if (period === 'AM' && hourNum === 12) hourNum = 0
+    const formatted = `${hourNum < 10 ? '0' : ''}${hourNum}:${m}`
+    onChange(formatted)
+  }
+
+  const hours = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
+  const minutes = ['00', '15', '30', '45']
+
+  return (
+    <div className={`p-3 rounded-2xl shadow-2xl border backdrop-blur-xl ${
+      darkMode ? 'bg-[#1C1C1E] border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'
+    }`}>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[11px] font-semibold tracking-wider uppercase text-gray-400">Choose Task Time</span>
+        {value && (
+          <button
+            type="button"
+            onClick={() => { onChange(null); onClose?.() }}
+            className="text-[11px] text-red-500 hover:underline font-medium cursor-pointer"
+          >
+            Clear Time
+          </button>
+        )}
+      </div>
+
+      {/* Quick Presets */}
+      <div className="grid grid-cols-2 gap-1.5 mb-3">
+        {TIME_PRESETS.map((p) => (
+          <button
+            key={p.time}
+            type="button"
+            onClick={() => {
+              onChange(value === p.time ? null : p.time)
+              onClose?.()
+            }}
+            className={`px-2 py-1.5 rounded-xl text-[11.5px] font-medium tracking-tight border cursor-pointer transition-all ${
+              value === p.time
+                ? 'bg-[#0071E3] text-white border-[#0071E3]'
+                : darkMode
+                ? 'bg-[#2C2C2E] border-gray-700 hover:border-gray-500 text-white/80'
+                : 'bg-gray-50 border-gray-200 hover:border-gray-300 text-gray-700'
+            }`}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="text-[10.5px] font-semibold tracking-wider uppercase text-gray-400 mb-1.5">
+        Custom Time Selector
+      </div>
+
+      {/* Dropdown Selectors for Hour, Minute, AM/PM */}
+      <div className="flex items-center justify-between gap-1.5 mb-3">
+        <select
+          value={selectedHour}
+          onChange={(e) => {
+            setSelectedHour(e.target.value)
+            applyCustomTime(e.target.value, selectedMinute, selectedAmPm)
+          }}
+          className={`flex-1 py-1.5 px-2 rounded-xl text-[13px] font-medium border outline-none cursor-pointer ${
+            darkMode ? 'bg-[#2C2C2E] border-gray-700 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'
+          }`}
+        >
+          {hours.map((h) => (
+            <option key={h} value={h}>{h}</option>
+          ))}
+        </select>
+
+        <span className="font-bold text-gray-400">:</span>
+
+        <select
+          value={selectedMinute}
+          onChange={(e) => {
+            setSelectedMinute(e.target.value)
+            applyCustomTime(selectedHour, e.target.value, selectedAmPm)
+          }}
+          className={`flex-1 py-1.5 px-2 rounded-xl text-[13px] font-medium border outline-none cursor-pointer ${
+            darkMode ? 'bg-[#2C2C2E] border-gray-700 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'
+          }`}
+        >
+          {minutes.map((m) => (
+            <option key={m} value={m}>{m}</option>
+          ))}
+        </select>
+
+        <div className={`flex rounded-xl p-0.5 border ${darkMode ? 'bg-[#2C2C2E] border-gray-700' : 'bg-gray-100 border-gray-200'}`}>
+          {['AM', 'PM'].map((period) => (
+            <button
+              key={period}
+              type="button"
+              onClick={() => {
+                setSelectedAmPm(period)
+                applyCustomTime(selectedHour, selectedMinute, period)
+              }}
+              className={`px-2 py-1 rounded-lg text-[11px] font-bold cursor-pointer transition-all ${
+                selectedAmPm === period
+                  ? 'bg-[#0071E3] text-white shadow-xs'
+                  : darkMode
+                  ? 'text-white/60 hover:text-white'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              {period}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={() => {
+          applyCustomTime(selectedHour, selectedMinute, selectedAmPm)
+          onClose?.()
+        }}
+        className="w-full py-1.5 rounded-xl bg-[#0071E3] text-white text-[12px] font-medium hover:bg-[#0071E3]/90 cursor-pointer transition-colors"
+      >
+        Set Time ({selectedHour}:{selectedMinute} {selectedAmPm})
+      </button>
+    </div>
+  )
+}
+
 function DateShortcuts({ value, onChange, timeValue, onTimeChange, darkMode }) {
   const t = todayStr()
+  const [showTimePicker, setShowTimePicker] = useState(false)
+  const containerRef = useRef(null)
+
+  useEffect(() => {
+    const handleOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setShowTimePicker(false)
+      }
+    }
+    if (showTimePicker) document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [showTimePicker])
 
   const opts = [
     { label: 'Today', date: t },
@@ -197,7 +355,7 @@ function DateShortcuts({ value, onChange, timeValue, onTimeChange, darkMode }) {
     <div className="space-y-2">
       <div className="flex items-center gap-1.5 flex-wrap">
         {opts.map((o) => (
-          <button key={o.label} type="button" onClick={() => onChange(value === o.date ? '' : o.date)} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] tracking-tight font-medium transition-all duration-150 focus:outline-none border" style={{ backgroundColor: value === o.date ? '#0071E3' : 'transparent', color: value === o.date ? 'white' : darkMode ? 'rgba(255,255,255,0.6)' : 'rgba(29,29,31,0.50)', borderColor: value === o.date ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.10)' }}>
+          <button key={o.label} type="button" onClick={() => onChange(value === o.date ? '' : o.date)} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] tracking-tight font-medium transition-all duration-150 focus:outline-none border cursor-pointer" style={{ backgroundColor: value === o.date ? '#0071E3' : 'transparent', color: value === o.date ? 'white' : darkMode ? 'rgba(255,255,255,0.6)' : 'rgba(29,29,31,0.50)', borderColor: value === o.date ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.10)' }}>
             {o.label}
           </button>
         ))}
@@ -224,42 +382,35 @@ function DateShortcuts({ value, onChange, timeValue, onTimeChange, darkMode }) {
           />
         </label>
         {value && (
-          <motion.button initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={SPRING} type="button" onClick={() => onChange('')} className="flex items-center justify-center w-6 h-6 rounded-full hover:bg-red-500/10 hover:text-red-400 text-gray-400 focus:outline-none">
+          <motion.button initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={SPRING} type="button" onClick={() => onChange('')} className="flex items-center justify-center w-6 h-6 rounded-full hover:bg-red-500/10 hover:text-red-400 text-gray-400 focus:outline-none cursor-pointer">
             <X size={12} strokeWidth={2.5} />
           </motion.button>
         )}
       </div>
 
-      {/* Time Presets & Custom Time Input */}
-      <div className="flex items-center gap-1.5 flex-wrap">
-        <label
-          className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[12px] tracking-tight font-medium border cursor-pointer transition-colors ${
+      {/* Time Presets & Custom Time Picker */}
+      <div ref={containerRef} className="relative flex items-center gap-1.5 flex-wrap">
+        <button
+          type="button"
+          onClick={() => setShowTimePicker((s) => !s)}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] tracking-tight font-medium border cursor-pointer transition-colors ${
             timeValue
               ? 'bg-[#0071E3] text-white border-[#0071E3]'
               : darkMode
-              ? 'bg-[#2C2C2E] border-gray-700 text-white/80'
-              : 'bg-gray-50 border-gray-200 text-[#1D1D1F]/70'
+              ? 'bg-[#2C2C2E] border-gray-700 text-white/80 hover:border-gray-500'
+              : 'bg-gray-50 border-gray-200 text-[#1D1D1F]/70 hover:border-gray-400'
           }`}
         >
           <Clock size={11} strokeWidth={2} className={timeValue ? 'text-white' : 'text-[#0071E3]'} />
-          <input
-            type="time"
-            aria-label="Pick due time"
-            value={timeValue || ''}
-            onChange={(e) => onTimeChange(e.target.value)}
-            className={`bg-transparent text-[12px] font-medium outline-none cursor-pointer border-none p-0 ${
-              timeValue ? 'text-white' : darkMode ? 'text-white' : 'text-gray-900'
-            }`}
-            style={{ colorScheme: darkMode ? 'dark' : 'light' }}
-          />
-        </label>
+          <span>{timeValue ? formatDueTime(timeValue) : 'Custom Time'}</span>
+        </button>
 
         {TIME_PRESETS.map((p) => (
           <button
             key={p.time}
             type="button"
             onClick={() => onTimeChange(timeValue === p.time ? '' : p.time)}
-            className="px-2.5 py-1 rounded-full text-[11.5px] font-medium tracking-tight transition-all border"
+            className="px-2.5 py-1 rounded-full text-[11.5px] font-medium tracking-tight transition-all border cursor-pointer"
             style={{
               backgroundColor: timeValue === p.time ? '#0071E3' : 'transparent',
               color: timeValue === p.time ? 'white' : darkMode ? 'rgba(255,255,255,0.6)' : 'rgba(29,29,31,0.50)',
@@ -271,9 +422,20 @@ function DateShortcuts({ value, onChange, timeValue, onTimeChange, darkMode }) {
         ))}
 
         {timeValue && (
-          <motion.button initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={SPRING} type="button" onClick={() => onTimeChange('')} className="flex items-center justify-center w-6 h-6 rounded-full hover:bg-red-500/10 hover:text-red-400 text-gray-400 focus:outline-none">
+          <motion.button initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={SPRING} type="button" onClick={() => onTimeChange('')} className="flex items-center justify-center w-6 h-6 rounded-full hover:bg-red-500/10 hover:text-red-400 text-gray-400 focus:outline-none cursor-pointer">
             <X size={12} strokeWidth={2.5} />
           </motion.button>
+        )}
+
+        {showTimePicker && (
+          <div className="absolute left-0 top-full mt-1.5 z-50 w-64">
+            <CustomTimePickerModal
+              value={timeValue}
+              onChange={onTimeChange}
+              darkMode={darkMode}
+              onClose={() => setShowTimePicker(false)}
+            />
+          </div>
         )}
       </div>
     </div>
@@ -300,7 +462,7 @@ function TimePickerMenu({ value, onChange, darkMode }) {
         type="button"
         aria-label="Set due time"
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center justify-center w-7 h-7 rounded-full transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3]"
+        className="flex items-center justify-center w-7 h-7 rounded-full transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3] cursor-pointer"
         style={{
           backgroundColor: value ? 'rgba(0,113,227,0.15)' : 'transparent',
           color: value ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.28)',
@@ -316,71 +478,14 @@ function TimePickerMenu({ value, onChange, darkMode }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 4 }}
             transition={SPRING}
-            className={`absolute right-0 mt-1 z-50 w-52 p-2.5 rounded-2xl shadow-xl border backdrop-blur-md ${
-              darkMode ? 'bg-[#1C1C1E] border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'
-            }`}
+            className="absolute right-0 mt-1 z-50 w-64"
           >
-            <div className="text-[10.5px] font-semibold tracking-wider uppercase px-2 py-0.5 mb-1 text-gray-400">
-              Task Time
-            </div>
-
-            <div className="space-y-1 my-1">
-              {TIME_PRESETS.map((p) => (
-                <button
-                  key={p.time}
-                  type="button"
-                  onClick={() => {
-                    onChange(value === p.time ? null : p.time)
-                    setOpen(false)
-                  }}
-                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-[12px] font-medium transition-colors ${
-                    value === p.time
-                      ? 'bg-[#0071E3] text-white'
-                      : darkMode
-                      ? 'hover:bg-white/10 text-white/80'
-                      : 'hover:bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  <span>{p.label}</span>
-                </button>
-              ))}
-            </div>
-
-            <div className={`pt-2 mt-1 border-t ${darkMode ? 'border-gray-800' : 'border-gray-100'}`}>
-              <div className="text-[10.5px] font-semibold tracking-wider uppercase px-1 mb-1.5 text-gray-400">
-                Custom Time
-              </div>
-              <div className={`flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-xl border transition-colors ${
-                darkMode ? 'bg-[#2C2C2E] border-gray-700 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'
-              }`}>
-                <Clock size={13} className="text-[#0071E3] flex-shrink-0" />
-                <input
-                  type="time"
-                  aria-label="Custom task time"
-                  value={value || ''}
-                  onChange={(e) => {
-                    onChange(e.target.value || null)
-                  }}
-                  className={`w-full bg-transparent text-[12.5px] font-medium outline-none cursor-pointer border-none p-0 ${
-                    darkMode ? 'text-white' : 'text-gray-900'
-                  }`}
-                  style={{ colorScheme: darkMode ? 'dark' : 'light' }}
-                />
-                {value && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onChange(null)
-                      setOpen(false)
-                    }}
-                    className="p-1 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
-                    title="Clear time"
-                  >
-                    <X size={12} />
-                  </button>
-                )}
-              </div>
-            </div>
+            <CustomTimePickerModal
+              value={value}
+              onChange={(t) => { onChange(t) }}
+              darkMode={darkMode}
+              onClose={() => setOpen(false)}
+            />
           </motion.div>
         )}
       </AnimatePresence>
