@@ -203,24 +203,39 @@ function CustomTimePickerModal({ value, onChange, darkMode, onClose }) {
   const [selectedHour, setSelectedHour] = useState(current.hour)
   const [selectedMinute, setSelectedMinute] = useState(current.minute)
   const [selectedAmPm, setSelectedAmPm] = useState(current.ampm)
+  const [customTimeInput, setCustomTimeInput] = useState(value || '09:00')
 
   const applyCustomTime = (h, m, period) => {
     let hourNum = parseInt(h, 10)
     if (period === 'PM' && hourNum < 12) hourNum += 12
     if (period === 'AM' && hourNum === 12) hourNum = 0
     const formatted = `${hourNum < 10 ? '0' : ''}${hourNum}:${m}`
+    setCustomTimeInput(formatted)
     onChange(formatted)
   }
 
+  const handleNativeInputChange = (val) => {
+    setCustomTimeInput(val)
+    if (val) {
+      const parsed = parseTime(val)
+      setSelectedHour(parsed.hour)
+      setSelectedMinute(parsed.minute)
+      setSelectedAmPm(parsed.ampm)
+      onChange(val)
+    } else {
+      onChange(null)
+    }
+  }
+
   const hours = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
-  const minutes = ['00', '15', '30', '45']
+  const minutes = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55']
 
   return (
-    <div className={`p-3 rounded-2xl shadow-2xl border backdrop-blur-xl ${
+    <div className={`p-3.5 rounded-2xl shadow-2xl border backdrop-blur-xl ${
       darkMode ? 'bg-[#1C1C1E] border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'
     }`}>
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-[11px] font-semibold tracking-wider uppercase text-gray-400">Choose Task Time</span>
+      <div className="flex items-center justify-between mb-2.5">
+        <span className="text-[11px] font-semibold tracking-wider uppercase text-gray-400">Task Time</span>
         {value && (
           <button
             type="button"
@@ -232,34 +247,30 @@ function CustomTimePickerModal({ value, onChange, darkMode, onClose }) {
         )}
       </div>
 
-      {/* Quick Presets */}
-      <div className="grid grid-cols-2 gap-1.5 mb-3">
-        {TIME_PRESETS.map((p) => (
-          <button
-            key={p.time}
-            type="button"
-            onClick={() => {
-              onChange(value === p.time ? null : p.time)
-              onClose?.()
-            }}
-            className={`px-2 py-1.5 rounded-xl text-[11.5px] font-medium tracking-tight border cursor-pointer transition-all ${
-              value === p.time
-                ? 'bg-[#0071E3] text-white border-[#0071E3]'
-                : darkMode
-                ? 'bg-[#2C2C2E] border-gray-700 hover:border-gray-500 text-white/80'
-                : 'bg-gray-50 border-gray-200 hover:border-gray-300 text-gray-700'
-            }`}
-          >
-            {p.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="text-[10.5px] font-semibold tracking-wider uppercase text-gray-400 mb-1.5">
-        Custom Time Selector
+      {/* Direct Clock Input */}
+      <div className={`flex items-center justify-between gap-2 p-2 rounded-xl border mb-3 ${
+        darkMode ? 'bg-[#2C2C2E] border-gray-700' : 'bg-gray-50 border-gray-200'
+      }`}>
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-[#0071E3]">
+          <Clock size={14} />
+          <span>Pick Exact Time:</span>
+        </div>
+        <input
+          type="time"
+          aria-label="Direct custom time input"
+          value={customTimeInput}
+          onChange={(e) => handleNativeInputChange(e.target.value)}
+          className={`bg-transparent text-[13px] font-bold outline-none cursor-pointer p-0 text-right ${
+            darkMode ? 'text-white' : 'text-gray-900'
+          }`}
+          style={{ colorScheme: darkMode ? 'dark' : 'light' }}
+        />
       </div>
 
       {/* Dropdown Selectors for Hour, Minute, AM/PM */}
+      <div className="text-[10.5px] font-semibold tracking-wider uppercase text-gray-400 mb-1.5">
+        Hour & Minute Selectors
+      </div>
       <div className="flex items-center justify-between gap-1.5 mb-3">
         <select
           value={selectedHour}
@@ -272,7 +283,7 @@ function CustomTimePickerModal({ value, onChange, darkMode, onClose }) {
           }`}
         >
           {hours.map((h) => (
-            <option key={h} value={h}>{h}</option>
+            <option key={h} value={h}>{h} hr</option>
           ))}
         </select>
 
@@ -289,7 +300,7 @@ function CustomTimePickerModal({ value, onChange, darkMode, onClose }) {
           }`}
         >
           {minutes.map((m) => (
-            <option key={m} value={m}>{m}</option>
+            <option key={m} value={m}>{m} min</option>
           ))}
         </select>
 
@@ -316,15 +327,41 @@ function CustomTimePickerModal({ value, onChange, darkMode, onClose }) {
         </div>
       </div>
 
+      {/* Presets */}
+      <div className="text-[10.5px] font-semibold tracking-wider uppercase text-gray-400 mb-1.5">
+        Quick Time Presets
+      </div>
+      <div className="grid grid-cols-2 gap-1.5 mb-3">
+        {TIME_PRESETS.map((p) => (
+          <button
+            key={p.time}
+            type="button"
+            onClick={() => {
+              onChange(value === p.time ? null : p.time)
+              onClose?.()
+            }}
+            className={`px-2 py-1.5 rounded-xl text-[11.5px] font-medium tracking-tight border cursor-pointer transition-all ${
+              value === p.time
+                ? 'bg-[#0071E3] text-white border-[#0071E3]'
+                : darkMode
+                ? 'bg-[#2C2C2E] border-gray-700 hover:border-gray-500 text-white/80'
+                : 'bg-gray-50 border-gray-200 hover:border-gray-300 text-gray-700'
+            }`}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
       <button
         type="button"
         onClick={() => {
           applyCustomTime(selectedHour, selectedMinute, selectedAmPm)
           onClose?.()
         }}
-        className="w-full py-1.5 rounded-xl bg-[#0071E3] text-white text-[12px] font-medium hover:bg-[#0071E3]/90 cursor-pointer transition-colors"
+        className="w-full py-2 rounded-xl bg-[#0071E3] text-white text-[12.5px] font-medium hover:bg-[#0071E3]/90 cursor-pointer transition-colors shadow-xs"
       >
-        Set Time ({selectedHour}:{selectedMinute} {selectedAmPm})
+        Done ({selectedHour}:{selectedMinute} {selectedAmPm})
       </button>
     </div>
   )
