@@ -236,9 +236,14 @@ function CustomTimePickerModal({ value, onChange, darkMode, onClose }) {
   const minutes = ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55']
 
   return (
-    <div className={`p-3.5 rounded-2xl shadow-2xl border backdrop-blur-xl ${
-      darkMode ? 'bg-[#1C1C1E] border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'
-    }`}>
+    <div
+      role="dialog"
+      aria-label="Task time picker"
+      onKeyDown={(e) => { if (e.key === 'Escape') onClose?.() }}
+      className={`p-3.5 rounded-2xl shadow-2xl border backdrop-blur-xl ${
+        darkMode ? 'bg-[#1C1C1E] border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'
+      }`}
+    >
       <div className="flex items-center justify-between mb-2.5">
         <span className="text-[11px] font-semibold tracking-wider uppercase text-gray-400">Task Time</span>
         {value && (
