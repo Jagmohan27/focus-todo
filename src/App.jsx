@@ -58,6 +58,13 @@ const PRIORITY_CONFIG = {
   low: { label: 'Low', color: '#34C759', bg: 'rgba(52,199,89,0.12)', rank: 1 },
 }
 
+const TIME_PRESETS = [
+  { label: 'Morning (9 AM)', time: '09:00' },
+  { label: 'Afternoon (1 PM)', time: '13:00' },
+  { label: 'Evening (6 PM)', time: '18:00' },
+  { label: 'Night (9 PM)', time: '21:00' },
+]
+
 function dueDateLabel(iso, time) {
   const t = todayStr()
   let label = ''
@@ -182,6 +189,7 @@ function DateShortcuts({ value, onChange, timeValue, onTimeChange, darkMode }) {
     { label: 'Tomorrow', date: new Date(Date.now() + 86_400_000).toISOString().slice(0, 10) },
     { label: 'Next week', date: new Date(Date.now() + 7 * 86_400_000).toISOString().slice(0, 10) },
   ]
+
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-1.5 flex-wrap">
@@ -204,11 +212,11 @@ function DateShortcuts({ value, onChange, timeValue, onTimeChange, darkMode }) {
         )}
       </div>
 
-      {/* Clock Time Picker Option */}
-      <div className="flex items-center gap-2">
+      {/* Time Presets & Custom Picker */}
+      <div className="flex items-center gap-1.5 flex-wrap">
         <label className={`relative flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] tracking-tight font-medium border cursor-pointer ${darkMode ? 'bg-[#2C2C2E] border-gray-700 text-white/80' : 'bg-gray-50 border-gray-200 text-[#1D1D1F]/70'}`}>
-          <Clock size={12} strokeWidth={2} className="text-[#0071E3]" />
-          <span>{timeValue ? formatDueTime(timeValue) : 'Add time'}</span>
+          <Clock size={11} strokeWidth={2} className="text-[#0071E3]" />
+          <span>{timeValue ? formatDueTime(timeValue) : 'Custom time'}</span>
           <input
             type="time"
             aria-label="Pick due time"
@@ -218,14 +226,27 @@ function DateShortcuts({ value, onChange, timeValue, onTimeChange, darkMode }) {
             style={{ colorScheme: darkMode ? 'dark' : 'light' }}
           />
         </label>
-        {timeValue && (
+
+        {TIME_PRESETS.map((p) => (
           <button
+            key={p.time}
             type="button"
-            onClick={() => onTimeChange('')}
-            className="text-[11px] text-red-400 hover:underline focus:outline-none"
+            onClick={() => onTimeChange(timeValue === p.time ? '' : p.time)}
+            className="px-2.5 py-1 rounded-full text-[11.5px] font-medium tracking-tight transition-all border"
+            style={{
+              backgroundColor: timeValue === p.time ? '#0071E3' : 'transparent',
+              color: timeValue === p.time ? 'white' : darkMode ? 'rgba(255,255,255,0.6)' : 'rgba(29,29,31,0.50)',
+              borderColor: timeValue === p.time ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.10)',
+            }}
           >
-            Clear time
+            {p.label}
           </button>
+        ))}
+
+        {timeValue && (
+          <motion.button initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={SPRING} type="button" onClick={() => onTimeChange('')} className="flex items-center justify-center w-6 h-6 rounded-full hover:bg-red-500/10 hover:text-red-400 text-gray-400 focus:outline-none">
+            <X size={12} strokeWidth={2.5} />
+          </motion.button>
         )}
       </div>
     </div>
