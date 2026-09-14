@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { AnimatePresence, motion, Reorder } from 'framer-motion'
-import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X, HelpCircle, Search, ArrowUpDown, Tag, Sun, Moon, Pin, Copy, Pencil, Flame, CheckCircle2, GripVertical } from 'lucide-react'
+import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X, HelpCircle, Search, ArrowUpDown, Tag, Sun, Moon, Pin, Copy, Pencil, Flame, CheckCircle2, GripVertical, Clock } from 'lucide-react'
 import {
   fetchTodos, insertTodo, updateTodo, deleteTodo,
   deleteCompletedTodos, logout,
@@ -15,6 +15,14 @@ const todayStr = () => new Date().toISOString().slice(0, 10)
 const formatDate = (d) =>
   d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
 
+function formatDueTime(timeStr) {
+  if (!timeStr) return ''
+  const [h, m] = timeStr.split(':')
+  const date = new Date()
+  date.setHours(parseInt(h, 10), parseInt(m, 10))
+  return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+}
+
 // Web Audio API synthesized soft chime for task completion
 function playCompletionSound() {
   try {
@@ -24,8 +32,8 @@ function playCompletionSound() {
     const osc = ctx.createOscillator()
     const gain = ctx.createGain()
     osc.type = 'sine'
-    osc.frequency.setValueAtTime(587.33, ctx.currentTime) // D5
-    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12) // A5
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime)
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12)
     gain.gain.setValueAtTime(0.12, ctx.currentTime)
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25)
     osc.connect(gain)
@@ -50,15 +58,19 @@ const PRIORITY_CONFIG = {
   low: { label: 'Low', color: '#34C759', bg: 'rgba(52,199,89,0.12)', rank: 1 },
 }
 
-function dueDateLabel(iso) {
+function dueDateLabel(iso, time) {
   const t = todayStr()
-  if (iso === t) return 'Today'
-  const diff = (new Date(iso).getTime() - new Date(t).getTime()) / 86_400_000
-  if (diff === 1) return 'Tomorrow'
-  if (diff === -1) return 'Yesterday'
-  if (diff < 0) return `${Math.abs(Math.round(diff))}d overdue`
-  if (diff < 7) return new Date(iso).toLocaleDateString('en-US', { weekday: 'long' })
-  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  let label = ''
+  if (iso === t) label = 'Today'
+  else {
+    const diff = (new Date(iso).getTime() - new Date(t).getTime()) / 86_400_000
+    if (diff === 1) label = 'Tomorrow'
+    else if (diff === -1) label = 'Yesterday'
+    else if (diff < 0) label = `${Math.abs(Math.round(diff))}d overdue`
+    else if (diff < 7) label = new Date(iso).toLocaleDateString('en-US', { weekday: 'long' })
+    else label = new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  }
+  return time ? `${label} at ${formatDueTime(time)}` : label
 }
 
 function duePriority(iso, completed) {
@@ -131,13 +143,13 @@ function ShortcutsModal({ open, onClose, darkMode }) {
   )
 }
 
-function DueBadge({ dueDate, completed, onClear, showClear }) {
+function DueBadge({ dueDate, dueTime, completed, onClear, showClear }) {
   const p = duePriority(dueDate, completed)
   const s = p ? PRI[p] : PRI.future
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium tracking-tight select-none" style={{ backgroundColor: s.bg, color: s.text }}>
       <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.dot }} />
-      {dueDateLabel(dueDate)}
+      {dueDateLabel(dueDate, dueTime)}
       <AnimatePresence>
         {showClear && (
           <motion.button key="c" initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.7 }} transition={SPRING} onClick={(e) => { e.stopPropagation(); onClear() }} aria-label="Remove due date" className="ml-0.5 rounded-full hover:opacity-70 transition-opacity">
@@ -163,7 +175,7 @@ function Checkbox({ checked, onChange, id }) {
   )
 }
 
-function DateShortcuts({ value, onChange, darkMode }) {
+function DateShortcuts({ value, onChange, timeValue, onTimeChange, darkMode }) {
   const t = todayStr()
   const opts = [
     { label: 'Today', date: t },
@@ -171,24 +183,49 @@ function DateShortcuts({ value, onChange, darkMode }) {
     { label: 'Next week', date: new Date(Date.now() + 7 * 86_400_000).toISOString().slice(0, 10) },
   ]
   return (
-    <div className="flex items-center gap-1.5 flex-wrap">
-      {opts.map((o) => (
-        <button key={o.label} type="button" onClick={() => onChange(value === o.date ? '' : o.date)} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] tracking-tight font-medium transition-all duration-150 focus:outline-none border" style={{ backgroundColor: value === o.date ? '#0071E3' : 'transparent', color: value === o.date ? 'white' : darkMode ? 'rgba(255,255,255,0.6)' : 'rgba(29,29,31,0.50)', borderColor: value === o.date ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.10)' }}>
-          {o.label}
-        </button>
-      ))}
-      <label className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] tracking-tight font-medium cursor-pointer border relative" style={{ backgroundColor: value && !opts.find((o) => o.date === value) ? '#0071E3' : 'transparent', color: value && !opts.find((o) => o.date === value) ? 'white' : darkMode ? 'rgba(255,255,255,0.6)' : 'rgba(29,29,31,0.50)', borderColor: value && !opts.find((o) => o.date === value) ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.10)' }}>
-        <Calendar size={11} strokeWidth={2} />
-        {value && !opts.find((o) => o.date === value)
-          ? new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-          : 'Pick date'}
-        <input type="date" aria-label="Custom due date" value={value} min={t} onChange={(e) => onChange(e.target.value)} className="absolute inset-0 opacity-0 w-full h-full cursor-pointer" style={{ colorScheme: darkMode ? 'dark' : 'light' }} />
-      </label>
-      {value && (
-        <motion.button initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={SPRING} type="button" onClick={() => onChange('')} className="flex items-center justify-center w-6 h-6 rounded-full hover:bg-red-500/10 hover:text-red-400 text-gray-400 focus:outline-none">
-          <X size={12} strokeWidth={2.5} />
-        </motion.button>
-      )}
+    <div className="space-y-2">
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {opts.map((o) => (
+          <button key={o.label} type="button" onClick={() => onChange(value === o.date ? '' : o.date)} className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] tracking-tight font-medium transition-all duration-150 focus:outline-none border" style={{ backgroundColor: value === o.date ? '#0071E3' : 'transparent', color: value === o.date ? 'white' : darkMode ? 'rgba(255,255,255,0.6)' : 'rgba(29,29,31,0.50)', borderColor: value === o.date ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.10)' }}>
+            {o.label}
+          </button>
+        ))}
+        <label className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[12px] tracking-tight font-medium cursor-pointer border relative" style={{ backgroundColor: value && !opts.find((o) => o.date === value) ? '#0071E3' : 'transparent', color: value && !opts.find((o) => o.date === value) ? 'white' : darkMode ? 'rgba(255,255,255,0.6)' : 'rgba(29,29,31,0.50)', borderColor: value && !opts.find((o) => o.date === value) ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.10)' }}>
+          <Calendar size={11} strokeWidth={2} />
+          {value && !opts.find((o) => o.date === value)
+            ? new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+            : 'Pick date'}
+          <input type="date" aria-label="Custom due date" value={value} min={t} onChange={(e) => onChange(e.target.value)} className="absolute inset-0 opacity-0 w-full h-full cursor-pointer" style={{ colorScheme: darkMode ? 'dark' : 'light' }} />
+        </label>
+        {value && (
+          <motion.button initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} transition={SPRING} type="button" onClick={() => onChange('')} className="flex items-center justify-center w-6 h-6 rounded-full hover:bg-red-500/10 hover:text-red-400 text-gray-400 focus:outline-none">
+            <X size={12} strokeWidth={2.5} />
+          </motion.button>
+        )}
+      </div>
+
+      {/* Time Picker Option */}
+      <div className="flex items-center gap-2">
+        <label className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] tracking-tight font-medium border cursor-pointer ${darkMode ? 'bg-[#2C2C2E] border-gray-700 text-white/80' : 'bg-gray-50 border-gray-200 text-[#1D1D1F]/70'}`}>
+          <Clock size={12} strokeWidth={2} className="text-[#0071E3]" />
+          <span>{timeValue ? formatDueTime(timeValue) : 'Add due time'}</span>
+          <input
+            type="time"
+            value={timeValue || ''}
+            onChange={(e) => onTimeChange(e.target.value)}
+            className="sr-only"
+          />
+        </label>
+        {timeValue && (
+          <button
+            type="button"
+            onClick={() => onTimeChange('')}
+            className="text-[11px] text-red-400 hover:underline focus:outline-none"
+          >
+            Clear time
+          </button>
+        )}
+      </div>
     </div>
   )
 }
@@ -269,7 +306,7 @@ function TodoItem({ todo, onToggle, onDelete, onDuplicate, onTextChange, onNoteC
                 {TAG_CONFIG[todo.tag].label}
               </span>
             )}
-            {todo.dueDate && <DueBadge dueDate={todo.dueDate} completed={todo.completed} showClear={hovered} onClear={() => onDueDateChange(todo.id, null)} />}
+            {todo.dueDate && <DueBadge dueDate={todo.dueDate} dueTime={todo.dueTime} completed={todo.completed} showClear={hovered} onClear={() => onDueDateChange(todo.id, null)} />}
             {hasNote && !noteOpen && <span className={`text-[11.5px] leading-snug tracking-tight truncate max-w-[160px] ${darkMode ? 'text-white/40' : 'text-[#1D1D1F]/35'}`}>{todo.note}</span>}
           </div>
         </div>
@@ -397,6 +434,7 @@ export default function App({ user, onLogout }) {
   const [loadingData, setLoadingData] = useState(true)
   const [input, setInput] = useState('')
   const [dueInput, setDueInput] = useState('')
+  const [dueTimeInput, setDueTimeInput] = useState('')
   const [selectedTag, setSelectedTag] = useState(null)
   const [selectedPriority, setSelectedPriority] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -410,7 +448,7 @@ export default function App({ user, onLogout }) {
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('focus-theme') === 'dark')
   const inputRef = useRef(null)
 
-  const isAddingActive = inputFocused || input.trim().length > 0 || dueInput !== '' || selectedTag !== null || selectedPriority !== null
+  const isAddingActive = inputFocused || input.trim().length > 0 || dueInput !== '' || dueTimeInput !== '' || selectedTag !== null || selectedPriority !== null
 
   const showToast = (msg) => {
     setToastMessage(msg)
@@ -456,7 +494,9 @@ export default function App({ user, onLogout }) {
     if (sortBy === 'due-date') {
       if (!a.dueDate) return 1
       if (!b.dueDate) return -1
-      return a.dueDate.localeCompare(b.dueDate)
+      const dateCompare = a.dueDate.localeCompare(b.dueDate)
+      if (dateCompare !== 0) return dateCompare
+      return (a.dueTime || '').localeCompare(b.dueTime || '')
     }
     if (sortBy === 'alpha') {
       return a.text.localeCompare(b.text)
@@ -481,12 +521,12 @@ export default function App({ user, onLogout }) {
 
   const handleAdd = useCallback(async () => {
     const text = input.trim(); if (!text) return
-    const temp = { id: crypto.randomUUID(), text, completed: false, note: '', tag: selectedTag, priority: selectedPriority, pinned: false, dueDate: dueInput || null, createdAt: new Date().toISOString() }
+    const temp = { id: crypto.randomUUID(), text, completed: false, note: '', tag: selectedTag, priority: selectedPriority, pinned: false, dueDate: dueInput || null, dueTime: dueTimeInput || null, createdAt: new Date().toISOString() }
     setTodos((p) => [temp, ...p])
-    setInput(''); setDueInput(''); setSelectedTag(null); setSelectedPriority(null); setShowSlash(false)
-    const saved = await insertTodo(user.id, { text, completed: false, note: '', tag: selectedTag, priority: selectedPriority, pinned: false, dueDate: dueInput || null })
+    setInput(''); setDueInput(''); setDueTimeInput(''); setSelectedTag(null); setSelectedPriority(null); setShowSlash(false)
+    const saved = await insertTodo(user.id, { text, completed: false, note: '', tag: selectedTag, priority: selectedPriority, pinned: false, dueDate: dueInput || null, dueTime: dueTimeInput || null })
     if (saved) setTodos((p) => p.map((t) => (t.id === temp.id ? saved : t)))
-  }, [input, dueInput, selectedTag, selectedPriority, user.id])
+  }, [input, dueInput, dueTimeInput, selectedTag, selectedPriority, user.id])
 
   const handleToggle = useCallback(async (id) => {
     const todo = todos.find((t) => t.id === id); if (!todo) return
@@ -547,7 +587,7 @@ export default function App({ user, onLogout }) {
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') handleAdd()
-    if (e.key === 'Escape') { setInput(''); setDueInput(''); setSelectedTag(null); setSelectedPriority(null); setShowSlash(false); inputRef.current?.blur() }
+    if (e.key === 'Escape') { setInput(''); setDueInput(''); setDueTimeInput(''); setSelectedTag(null); setSelectedPriority(null); setShowSlash(false); inputRef.current?.blur() }
   }
 
   useEffect(() => {
@@ -672,9 +712,9 @@ export default function App({ user, onLogout }) {
             <div className="mb-1">
               <div className="flex items-center gap-1.5 mb-2">
                 <Calendar size={11} strokeWidth={2} className={darkMode ? 'text-white/35' : 'text-[#1D1D1F]/35'} />
-                <span className={`text-[11px] font-semibold tracking-widest uppercase ${darkMode ? 'text-white/35' : 'text-[#1D1D1F]/35'}`}>Due date</span>
+                <span className={`text-[11px] font-semibold tracking-widest uppercase ${darkMode ? 'text-white/35' : 'text-[#1D1D1F]/35'}`}>Due Date & Time</span>
               </div>
-              <DateShortcuts value={dueInput} onChange={setDueInput} darkMode={darkMode} />
+              <DateShortcuts value={dueInput} onChange={setDueInput} timeValue={dueTimeInput} onTimeChange={setDueTimeInput} darkMode={darkMode} />
             </div>
 
             <motion.div animate={{ opacity: isAddingActive ? 1 : 0, height: isAddingActive ? 'auto' : 0 }} transition={{ duration: 0.18 }} className="overflow-hidden">
@@ -711,7 +751,7 @@ export default function App({ user, onLogout }) {
                 <option value="date-desc">Newest first</option>
                 <option value="priority">Priority (High to Low)</option>
                 <option value="date-asc">Oldest first</option>
-                <option value="due-date">Due date</option>
+                <option value="due-date">Due date & time</option>
                 <option value="alpha">Alphabetical</option>
               </select>
             </div>
