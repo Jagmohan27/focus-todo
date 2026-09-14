@@ -151,7 +151,9 @@ function ShortcutsModal({ open, onClose, darkMode }) {
 }
 
 function DueBadge({ dueDate, dueTime, completed, onClear, showClear }) {
-  const p = duePriority(dueDate, completed)
+  if (!dueDate && !dueTime) return null
+  const d = dueDate || todayStr()
+  const p = duePriority(d, completed)
   const s = p ? PRI[p] : PRI.future
   return (
     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium tracking-tight select-none" style={{ backgroundColor: s.bg, color: s.text }}>
@@ -159,7 +161,7 @@ function DueBadge({ dueDate, dueTime, completed, onClear, showClear }) {
       {dueDateLabel(dueDate, dueTime)}
       <AnimatePresence>
         {showClear && (
-          <motion.button key="c" initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.7 }} transition={SPRING} onClick={(e) => { e.stopPropagation(); onClear() }} aria-label="Remove due date" className="ml-0.5 rounded-full hover:opacity-70 transition-opacity">
+          <motion.button key="c" initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.7 }} transition={SPRING} onClick={(e) => { e.stopPropagation(); onClear() }} aria-label="Remove due date and time" className="ml-0.5 rounded-full hover:opacity-70 transition-opacity">
             <X size={10} strokeWidth={2.5} />
           </motion.button>
         )}
@@ -253,6 +255,108 @@ function DateShortcuts({ value, onChange, timeValue, onTimeChange, darkMode }) {
   )
 }
 
+function TimePickerMenu({ value, onChange, darkMode }) {
+  const [open, setOpen] = useState(false)
+  const menuRef = useRef(null)
+
+  useEffect(() => {
+    const handleOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setOpen(false)
+      }
+    }
+    if (open) document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [open])
+
+  return (
+    <div ref={menuRef} className="relative inline-block">
+      <button
+        type="button"
+        aria-label="Set due time"
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center justify-center w-7 h-7 rounded-full transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3]"
+        style={{
+          backgroundColor: value ? 'rgba(0,113,227,0.15)' : 'transparent',
+          color: value ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.28)',
+        }}
+      >
+        <Clock size={13} strokeWidth={1.9} />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 4 }}
+            transition={SPRING}
+            className={`absolute right-0 mt-1 z-50 w-48 p-2.5 rounded-2xl shadow-xl border backdrop-blur-md ${
+              darkMode ? 'bg-[#1C1C1E] border-gray-700 text-white' : 'bg-white border-gray-200 text-gray-900'
+            }`}
+          >
+            <div className="text-[10.5px] font-semibold tracking-wider uppercase px-2 py-0.5 mb-1 text-gray-400">
+              Task Time
+            </div>
+
+            <div className="space-y-1 my-1">
+              {TIME_PRESETS.map((p) => (
+                <button
+                  key={p.time}
+                  type="button"
+                  onClick={() => {
+                    onChange(value === p.time ? null : p.time)
+                    setOpen(false)
+                  }}
+                  className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-[12px] font-medium transition-colors ${
+                    value === p.time
+                      ? 'bg-[#0071E3] text-white'
+                      : darkMode
+                      ? 'hover:bg-white/10 text-white/80'
+                      : 'hover:bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  <span>{p.label}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className={`pt-1.5 mt-1 border-t flex items-center justify-between gap-1.5 ${darkMode ? 'border-gray-800' : 'border-gray-100'}`}>
+              <label className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded-xl text-[11.5px] font-medium border cursor-pointer hover:border-[#0071E3] transition-colors relative">
+                <Clock size={11} className="text-[#0071E3]" />
+                <span>Custom</span>
+                <input
+                  type="time"
+                  value={value || ''}
+                  onChange={(e) => {
+                    onChange(e.target.value || null)
+                    setOpen(false)
+                  }}
+                  className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                  style={{ colorScheme: darkMode ? 'dark' : 'light' }}
+                />
+              </label>
+
+              {value && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onChange(null)
+                    setOpen(false)
+                  }}
+                  className="px-2 py-1 rounded-xl text-[11.5px] font-medium text-red-500 hover:bg-red-500/10 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
 function TodoItem({ todo, onToggle, onDelete, onDuplicate, onTextChange, onNoteChange, onDueDateChange, onDueTimeChange, onPinToggle, darkMode }) {
   const [hovered, setHovered] = useState(false)
   const [noteOpen, setNoteOpen] = useState(false)
@@ -260,7 +364,6 @@ function TodoItem({ todo, onToggle, onDelete, onDuplicate, onTextChange, onNoteC
   const [editText, setEditText] = useState(todo.text)
   const noteRef = useRef(null)
   const dateRef = useRef(null)
-  const timeRef = useRef(null)
   const editInputRef = useRef(null)
   const hasNote = todo.note.trim().length > 0
 
@@ -330,7 +433,18 @@ function TodoItem({ todo, onToggle, onDelete, onDuplicate, onTextChange, onNoteC
                 {TAG_CONFIG[todo.tag].label}
               </span>
             )}
-            {todo.dueDate && <DueBadge dueDate={todo.dueDate} dueTime={todo.dueTime} completed={todo.completed} showClear={hovered} onClear={() => onDueDateChange(todo.id, null)} />}
+            {(todo.dueDate || todo.dueTime) && (
+              <DueBadge
+                dueDate={todo.dueDate}
+                dueTime={todo.dueTime}
+                completed={todo.completed}
+                showClear={hovered}
+                onClear={() => {
+                  onDueDateChange(todo.id, null)
+                  onDueTimeChange(todo.id, null)
+                }}
+              />
+            )}
             {hasNote && !noteOpen && <span className={`text-[11.5px] leading-snug tracking-tight truncate max-w-[160px] ${darkMode ? 'text-white/40' : 'text-[#1D1D1F]/35'}`}>{todo.note}</span>}
           </div>
         </div>
@@ -371,10 +485,9 @@ function TodoItem({ todo, onToggle, onDelete, onDuplicate, onTextChange, onNoteC
 
           <AnimatePresence>
             {(hovered || todo.dueTime) && (
-              <motion.button key="time-btn" aria-label="Set due time" initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.75 }} transition={SPRING} onClick={() => timeRef.current?.showPicker?.()} className="relative flex items-center justify-center w-7 h-7 rounded-full transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3]" style={{ backgroundColor: todo.dueTime ? 'rgba(0,113,227,0.12)' : 'transparent', color: todo.dueTime ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.28)' }}>
-                <Clock size={13} strokeWidth={1.9} />
-                <input ref={timeRef} type="time" aria-label="Due time" value={todo.dueTime ?? ''} onChange={(e) => onDueTimeChange(todo.id, e.target.value || null)} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" style={{ colorScheme: darkMode ? 'dark' : 'light' }} />
-              </motion.button>
+              <motion.div key="time-menu" initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.75 }} transition={SPRING}>
+                <TimePickerMenu value={todo.dueTime} onChange={(t) => onDueTimeChange(todo.id, t)} darkMode={darkMode} />
+              </motion.div>
             )}
           </AnimatePresence>
 
