@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { AnimatePresence, motion, Reorder } from 'framer-motion'
-import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X, HelpCircle, Search, ArrowUpDown, Tag, Sun, Moon, Pin, Copy, Pencil, Flame, Clock } from 'lucide-react'
+import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X, HelpCircle, Search, ArrowUpDown, Tag, Sun, Moon, Pin, Copy, Pencil, Flame, CheckCircle2 } from 'lucide-react'
 import {
   fetchTodos, insertTodo, updateTodo, deleteTodo,
   deleteCompletedTodos, logout,
@@ -14,6 +14,28 @@ const todayStr = () => new Date().toISOString().slice(0, 10)
 
 const formatDate = (d) =>
   d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+
+// Web Audio API synthesized soft chime for task completion
+function playCompletionSound() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext
+    if (!AudioCtx) return
+    const ctx = new AudioCtx()
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime) // D5
+    osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.12) // A5
+    gain.gain.setValueAtTime(0.12, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start()
+    osc.stop(ctx.currentTime + 0.25)
+  } catch {
+    // Audio Context not allowed or unsupported
+  }
+}
 
 const TAG_CONFIG = {
   work: { label: 'Work', bg: 'rgba(0,113,227,0.12)', text: '#0071E3' },
@@ -381,10 +403,16 @@ export default function App({ user, onLogout }) {
   const [inputFocused, setInputFocused] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
+  const [toastMessage, setToastMessage] = useState(null)
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('focus-theme') === 'dark')
   const inputRef = useRef(null)
 
   const isAddingActive = inputFocused || input.trim().length > 0 || dueInput !== '' || selectedTag !== null || selectedPriority !== null
+
+  const showToast = (msg) => {
+    setToastMessage(msg)
+    setTimeout(() => setToastMessage(null), 2500)
+  }
 
   const toggleDarkMode = () => {
     setDarkMode((prev) => {
@@ -460,6 +488,10 @@ export default function App({ user, onLogout }) {
   const handleToggle = useCallback(async (id) => {
     const todo = todos.find((t) => t.id === id); if (!todo) return
     const newVal = !todo.completed
+    if (newVal) {
+      playCompletionSound()
+      showToast('Task completed!')
+    }
     setTodos((p) => p.map((t) => (t.id === id ? { ...t, completed: newVal } : t)))
     await updateTodo(id, { completed: newVal })
   }, [todos])
@@ -746,6 +778,22 @@ export default function App({ user, onLogout }) {
           </motion.div>
         )}
       </main>
+
+      {/* Completion Toast Notification */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.9 }}
+            transition={SPRING}
+            className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2 bg-[#0071E3] text-white rounded-2xl text-xs font-semibold tracking-tight shadow-xl"
+          >
+            <CheckCircle2 size={14} />
+            <span>{toastMessage}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <motion.button id="fab-add" aria-label="Add new task" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ ...SPRING, delay: 0.4 }} whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.93 }} onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); setTimeout(() => inputRef.current?.focus(), 300) }} className="fixed bottom-6 right-6 z-50 rounded-full bg-[#0071E3] text-white shadow-lg flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3] focus-visible:ring-offset-2" style={{ width: 52, height: 52 }}>
         <Plus size={22} strokeWidth={2.2} />
