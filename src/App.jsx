@@ -15,6 +15,11 @@ const todayStr = () => new Date().toISOString().slice(0, 10)
 const formatDate = (d) =>
   d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
 
+/**
+ * Formats a 24-hour time string ("HH:MM") into a localized 12-hour string (e.g. "9:30 AM")
+ * @param {string} timeStr - Time string in 24-hour HH:MM format
+ * @returns {string} Formatted 12-hour time string
+ */
 function formatDueTime(timeStr) {
   if (!timeStr) return ''
   const [h, m] = timeStr.split(':')
