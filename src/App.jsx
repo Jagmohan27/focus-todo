@@ -204,16 +204,18 @@ function DateShortcuts({ value, onChange, timeValue, onTimeChange, darkMode }) {
         )}
       </div>
 
-      {/* Time Picker Option */}
+      {/* Clock Time Picker Option */}
       <div className="flex items-center gap-2">
-        <label className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] tracking-tight font-medium border cursor-pointer ${darkMode ? 'bg-[#2C2C2E] border-gray-700 text-white/80' : 'bg-gray-50 border-gray-200 text-[#1D1D1F]/70'}`}>
+        <label className={`relative flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] tracking-tight font-medium border cursor-pointer ${darkMode ? 'bg-[#2C2C2E] border-gray-700 text-white/80' : 'bg-gray-50 border-gray-200 text-[#1D1D1F]/70'}`}>
           <Clock size={12} strokeWidth={2} className="text-[#0071E3]" />
-          <span>{timeValue ? formatDueTime(timeValue) : 'Add due time'}</span>
+          <span>{timeValue ? formatDueTime(timeValue) : 'Add time'}</span>
           <input
             type="time"
+            aria-label="Pick due time"
             value={timeValue || ''}
             onChange={(e) => onTimeChange(e.target.value)}
-            className="sr-only"
+            className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+            style={{ colorScheme: darkMode ? 'dark' : 'light' }}
           />
         </label>
         {timeValue && (
@@ -230,13 +232,14 @@ function DateShortcuts({ value, onChange, timeValue, onTimeChange, darkMode }) {
   )
 }
 
-function TodoItem({ todo, onToggle, onDelete, onDuplicate, onTextChange, onNoteChange, onDueDateChange, onPinToggle, darkMode }) {
+function TodoItem({ todo, onToggle, onDelete, onDuplicate, onTextChange, onNoteChange, onDueDateChange, onDueTimeChange, onPinToggle, darkMode }) {
   const [hovered, setHovered] = useState(false)
   const [noteOpen, setNoteOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editText, setEditText] = useState(todo.text)
   const noteRef = useRef(null)
   const dateRef = useRef(null)
+  const timeRef = useRef(null)
   const editInputRef = useRef(null)
   const hasNote = todo.note.trim().length > 0
 
@@ -341,6 +344,15 @@ function TodoItem({ todo, onToggle, onDelete, onDuplicate, onTextChange, onNoteC
               <motion.button key="date-btn" id={`date-${todo.id}`} aria-label="Set due date" initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.75 }} transition={SPRING} onClick={() => dateRef.current?.showPicker?.()} className="relative flex items-center justify-center w-7 h-7 rounded-full transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3]" style={{ backgroundColor: todo.dueDate ? 'rgba(0,113,227,0.12)' : 'transparent', color: todo.dueDate ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.28)' }}>
                 <Calendar size={13} strokeWidth={1.9} />
                 <input ref={dateRef} type="date" aria-label="Due date" value={todo.dueDate ?? ''} min={todayStr()} onChange={(e) => onDueDateChange(todo.id, e.target.value || null)} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" style={{ colorScheme: darkMode ? 'dark' : 'light' }} />
+              </motion.button>
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {(hovered || todo.dueTime) && (
+              <motion.button key="time-btn" aria-label="Set due time" initial={{ opacity: 0, scale: 0.75 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.75 }} transition={SPRING} onClick={() => timeRef.current?.showPicker?.()} className="relative flex items-center justify-center w-7 h-7 rounded-full transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3]" style={{ backgroundColor: todo.dueTime ? 'rgba(0,113,227,0.12)' : 'transparent', color: todo.dueTime ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.28)' }}>
+                <Clock size={13} strokeWidth={1.9} />
+                <input ref={timeRef} type="time" aria-label="Due time" value={todo.dueTime ?? ''} onChange={(e) => onDueTimeChange(todo.id, e.target.value || null)} className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" style={{ colorScheme: darkMode ? 'dark' : 'light' }} />
               </motion.button>
             )}
           </AnimatePresence>
@@ -578,6 +590,11 @@ export default function App({ user, onLogout }) {
     await updateTodo(id, { dueDate })
   }, [])
 
+  const handleDueTimeChange = useCallback(async (id, dueTime) => {
+    setTodos((p) => p.map((t) => (t.id === id ? { ...t, dueTime } : t)))
+    await updateTodo(id, { dueTime })
+  }, [])
+
   const handleClearCompleted = useCallback(async () => {
     setTodos((p) => p.filter((t) => !t.completed))
     await deleteCompletedTodos(user.id)
@@ -800,7 +817,7 @@ export default function App({ user, onLogout }) {
                 }} as="ul" className="flex flex-col gap-2.5 p-0 m-0" style={{ listStyle: 'none' }}>
                   <AnimatePresence>
                     {sorted.map((todo) => (
-                      <TodoItem key={todo.id} todo={todo} onToggle={handleToggle} onDelete={handleDelete} onDuplicate={handleDuplicate} onTextChange={handleTextChange} onNoteChange={handleNoteChange} onDueDateChange={handleDueDateChange} onPinToggle={handlePinToggle} darkMode={darkMode} />
+                      <TodoItem key={todo.id} todo={todo} onToggle={handleToggle} onDelete={handleDelete} onDuplicate={handleDuplicate} onTextChange={handleTextChange} onNoteChange={handleNoteChange} onDueDateChange={handleDueDateChange} onDueTimeChange={handleDueTimeChange} onPinToggle={handlePinToggle} darkMode={darkMode} />
                     ))}
                   </AnimatePresence>
                 </Reorder.Group>
