@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback, memo } from 'react'
 import { AnimatePresence, motion, Reorder } from 'framer-motion'
 import { Check, Trash2, Plus, Command, Sparkles, FileText, ChevronDown, Calendar, X, HelpCircle, Search, ArrowUpDown, Tag, Sun, Moon, Pin, Copy, Pencil, Flame, CheckCircle2, GripVertical, Clock } from 'lucide-react'
 import {
@@ -723,14 +723,14 @@ function TodoItem({ todo, onToggle, onDelete, onDuplicate, onTextChange, onNoteC
   )
 }
 
-function FilterPill({ label, active, onClick, id, darkMode }) {
+const FilterPill = memo(function FilterPill({ label, active, onClick, id, darkMode }) {
   return (
-    <button id={id} onClick={onClick} className="relative px-3.5 py-1 rounded-full text-[13px] tracking-tight font-medium transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3]" style={{ color: active ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.5)' : 'rgba(29,29,31,0.42)' }}>
+    <button id={id} onClick={onClick} className="relative px-3.5 py-1 rounded-full text-[13px] tracking-tight font-medium transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3] cursor-pointer" style={{ color: active ? '#0071E3' : darkMode ? 'rgba(255,255,255,0.5)' : 'rgba(29,29,31,0.42)' }}>
       {active && <motion.span layoutId="filter-pill" className={`absolute inset-0 rounded-full ${darkMode ? 'bg-blue-900/40' : 'bg-blue-50'}`} transition={SPRING} />}
       <span className="relative z-10">{label}</span>
     </button>
   )
-}
+})
 
 function EmptyState({ filter, isSearch, darkMode }) {
   const msgs = {
