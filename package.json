@@ -1,7 +1,8 @@
 {
   "name": "focus-todo-app",
+  "version": "1.0.0",
+  "description": "Minimalist, offline-first task management web application built with React, Vite, Framer Motion, and Tailwind CSS",
   "private": true,
-  "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
