@@ -161,17 +161,22 @@ function DueBadge({ dueDate, dueTime, completed, onClear, showClear }) {
   const p = duePriority(d, completed)
   const s = p ? PRI[p] : PRI.future
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium tracking-tight select-none" style={{ backgroundColor: s.bg, color: s.text }}>
+    <motion.span
+      whileHover={{ scale: 1.03 }}
+      transition={SPRING}
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium tracking-tight select-none cursor-default transition-all"
+      style={{ backgroundColor: s.bg, color: s.text }}
+    >
       <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.dot }} />
       {dueDateLabel(dueDate, dueTime)}
       <AnimatePresence>
         {showClear && (
-          <motion.button key="c" initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.7 }} transition={SPRING} onClick={(e) => { e.stopPropagation(); onClear() }} aria-label="Remove due date and time" className="ml-0.5 rounded-full hover:opacity-70 transition-opacity">
+          <motion.button key="c" initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.7 }} transition={SPRING} onClick={(e) => { e.stopPropagation(); onClear() }} aria-label="Remove due date and time" className="ml-0.5 rounded-full hover:opacity-70 transition-opacity cursor-pointer">
             <X size={10} strokeWidth={2.5} />
           </motion.button>
         )}
       </AnimatePresence>
-    </span>
+    </motion.span>
   )
 }
 
