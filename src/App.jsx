@@ -63,6 +63,9 @@ const PRIORITY_CONFIG = {
   low: { label: 'Low', color: '#34C759', bg: 'rgba(52,199,89,0.12)', rank: 1 },
 }
 
+/**
+ * Default preset time shortcuts available for fast task scheduling
+ */
 const TIME_PRESETS = [
   { label: 'Morning (9 AM)', time: '09:00' },
   { label: 'Afternoon (1 PM)', time: '13:00' },
