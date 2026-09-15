@@ -195,7 +195,7 @@ function Checkbox({ checked, onChange, id }) {
 }
 
 function CustomTimePickerModal({ value, onChange, darkMode, onClose }) {
-  const parseTime = (timeStr) => {
+  const parseTime = useCallback((timeStr) => {
     if (!timeStr) return { hour: '09', minute: '00', ampm: 'AM' }
     const [hStr, mStr] = timeStr.split(':')
     let h = parseInt(hStr, 10)
@@ -207,7 +207,7 @@ function CustomTimePickerModal({ value, onChange, darkMode, onClose }) {
       minute: mStr || '00',
       ampm,
     }
-  }
+  }, [])
 
   const current = parseTime(value)
   const [selectedHour, setSelectedHour] = useState(current.hour)
