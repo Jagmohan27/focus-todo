@@ -913,8 +913,8 @@ export default function App({ user, onLogout }) {
   }, [])
 
   const handleDueTimeChange = useCallback(async (id, dueTime) => {
-    setTodos((p) => p.map((t) => (t.id === id ? { ...t, dueTime } : t)))
-    await updateTodo(id, { dueTime })
+    setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, dueTime: dueTime || null } : t)))
+    await updateTodo(id, { dueTime: dueTime || null })
   }, [])
 
   const handleClearCompleted = useCallback(async () => {
