@@ -355,7 +355,7 @@ function CustomTimePickerModal({ value, onChange, darkMode, onClose }) {
               onChange(value === p.time ? null : p.time)
               onClose?.()
             }}
-            className={`px-2 py-1.5 rounded-xl text-[11.5px] font-medium tracking-tight border cursor-pointer transition-all ${
+            className={`px-2 py-1.5 rounded-xl text-[11.5px] font-medium tracking-tight border cursor-pointer transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3] ${
               value === p.time
                 ? 'bg-[#0071E3] text-white border-[#0071E3]'
                 : darkMode
