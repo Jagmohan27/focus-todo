@@ -109,6 +109,7 @@ function ShortcutsModal({ open, onClose, darkMode }) {
     { key: 'Space', desc: 'Focus task input field' },
     { key: '↵ Enter', desc: 'Add new task' },
     { key: 'Esc', desc: 'Cancel input or close panel' },
+    { key: 'Double Click', desc: 'Inline edit task text' },
     { key: '?', desc: 'Toggle keyboard shortcuts' },
   ]
 
