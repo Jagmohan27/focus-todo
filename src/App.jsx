@@ -380,6 +380,7 @@ function CustomTimePickerModal({ value, onChange, darkMode, onClose }) {
 
       <button
         type="button"
+        aria-label="Confirm task time selection"
         onClick={() => {
           applyCustomTime(selectedHour, selectedMinute, selectedAmPm)
           onClose?.()
