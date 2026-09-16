@@ -88,6 +88,12 @@ function dueDateLabel(iso, time) {
   return time ? `${label} at ${formatDueTime(time)}` : label
 }
 
+/**
+ * Evaluates the priority status of a task based on its ISO due date and completion state
+ * @param {string|null} iso - ISO date string (YYYY-MM-DD)
+ * @param {boolean} completed - Task completion status
+ * @returns {'overdue'|'today'|'soon'|'future'|null} Priority classification string
+ */
 function duePriority(iso, completed) {
   if (!iso || completed) return null
   const t = todayStr()
