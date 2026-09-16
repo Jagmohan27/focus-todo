@@ -98,10 +98,10 @@ function duePriority(iso, completed) {
 }
 
 const PRI = {
-  overdue: { bg: 'rgba(255,59,48,0.12)', text: '#FF3B30', dot: '#FF3B30' },
-  today: { bg: 'rgba(255,149,0,0.12)', text: '#FF9500', dot: '#FF9500' },
-  soon: { bg: 'rgba(0,113,227,0.12)', text: '#0071E3', dot: '#0071E3' },
-  future: { bg: 'rgba(120,120,128,0.12)', text: 'rgba(140,140,145,0.85)', dot: 'rgba(140,140,145,0.6)' },
+  overdue: { bg: 'rgba(255,59,48,0.14)', text: '#FF3B30', dot: '#FF3B30' },
+  today: { bg: 'rgba(255,149,0,0.14)', text: '#FF9500', dot: '#FF9500' },
+  soon: { bg: 'rgba(0,113,227,0.14)', text: '#0071E3', dot: '#0071E3' },
+  future: { bg: 'rgba(120,120,128,0.14)', text: 'rgba(140,140,145,0.90)', dot: 'rgba(140,140,145,0.7)' },
 }
 
 function ShortcutsModal({ open, onClose, darkMode }) {
