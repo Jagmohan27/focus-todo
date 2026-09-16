@@ -7,8 +7,8 @@ import {
 } from './auth'
 import ProfilePanel from './ProfilePanel'
 
-const SPRING = { type: 'spring', stiffness: 400, damping: 30 }
-const SOFT = { type: 'spring', stiffness: 280, damping: 24 }
+const SPRING = { type: 'spring', stiffness: 420, damping: 28 }
+const SOFT = { type: 'spring', stiffness: 300, damping: 26 }
 
 const todayStr = () => new Date().toISOString().slice(0, 10)
 
