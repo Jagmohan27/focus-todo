@@ -192,7 +192,7 @@ function DueBadge({ dueDate, dueTime, completed, onClear, showClear }) {
 
 function Checkbox({ checked, onChange, id }) {
   return (
-    <button id={`cb-${id}`} aria-label={checked ? 'Mark incomplete' : 'Mark complete'} onClick={onChange} className="relative flex-shrink-0 w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3] focus-visible:ring-offset-2" style={{ borderColor: checked ? '#0071E3' : 'rgba(140,140,145,0.4)', backgroundColor: checked ? '#0071E3' : 'transparent' }}>
+    <button id={`cb-${id}`} aria-label={checked ? 'Mark incomplete' : 'Mark complete'} onClick={onChange} className="relative flex-shrink-0 w-[22px] h-[22px] rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0071E3] focus-visible:ring-offset-2" style={{ borderColor: checked ? '#0071E3' : 'rgba(140,140,145,0.4)', backgroundColor: checked ? '#0071E3' : 'transparent' }}>
       <AnimatePresence>
         {checked && (
           <motion.span key="chk" initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0, opacity: 0 }} transition={SPRING}>
