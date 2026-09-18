@@ -15,7 +15,9 @@ function saveLocalTodos(todos) {
     if (Array.isArray(todos)) {
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(todos))
     }
-  } catch {}
+  } catch (err) {
+    // QuotaExceededError or private browsing storage restriction
+  }
 }
 
 export async function fetchTodos(userId) {
