@@ -623,12 +623,12 @@ function TodoItem({ todo, onToggle, onDelete, onDuplicate, onTextChange, onNoteC
           </div>
           <div className="flex items-center flex-wrap gap-1.5 mt-1">
             {todo.priority && PRIORITY_CONFIG[todo.priority] && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold tracking-tight" style={{ backgroundColor: PRIORITY_CONFIG[todo.priority].bg, color: PRIORITY_CONFIG[todo.priority].color }}>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-tight shadow-2xs" style={{ backgroundColor: PRIORITY_CONFIG[todo.priority].bg, color: PRIORITY_CONFIG[todo.priority].color }}>
                 {PRIORITY_CONFIG[todo.priority].label} Priority
               </span>
             )}
             {todo.tag && TAG_CONFIG[todo.tag] && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium tracking-tight" style={{ backgroundColor: TAG_CONFIG[todo.tag].bg, color: TAG_CONFIG[todo.tag].text }}>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium tracking-tight shadow-2xs" style={{ backgroundColor: TAG_CONFIG[todo.tag].bg, color: TAG_CONFIG[todo.tag].text }}>
                 {TAG_CONFIG[todo.tag].label}
               </span>
             )}
