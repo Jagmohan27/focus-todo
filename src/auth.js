@@ -12,7 +12,9 @@ function getLocalTodos() {
 
 function saveLocalTodos(todos) {
   try {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(todos))
+    if (Array.isArray(todos)) {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(todos))
+    }
   } catch {}
 }
 
