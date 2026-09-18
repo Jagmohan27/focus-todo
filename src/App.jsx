@@ -51,10 +51,10 @@ function playCompletionSound() {
 }
 
 const TAG_CONFIG = {
-  work: { label: 'Work', bg: 'rgba(0,113,227,0.12)', text: '#0071E3' },
-  personal: { label: 'Personal', bg: 'rgba(175,82,222,0.12)', text: '#AF52DE' },
-  idea: { label: 'Idea', bg: 'rgba(255,149,0,0.12)', text: '#FF9500' },
-  urgent: { label: 'Urgent', bg: 'rgba(255,59,48,0.12)', text: '#FF3B30' },
+  work: { label: 'Work', bg: 'rgba(0,113,227,0.14)', text: '#0071E3' },
+  personal: { label: 'Personal', bg: 'rgba(175,82,222,0.14)', text: '#AF52DE' },
+  idea: { label: 'Idea', bg: 'rgba(255,149,0,0.14)', text: '#FF9500' },
+  urgent: { label: 'Urgent', bg: 'rgba(255,59,48,0.14)', text: '#FF3B30' },
 }
 
 const PRIORITY_CONFIG = {
