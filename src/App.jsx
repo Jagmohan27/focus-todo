@@ -134,6 +134,9 @@ function ShortcutsModal({ open, onClose, darkMode }) {
           />
           <motion.div
             key="sc-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="shortcuts-modal-title"
             initial={{ opacity: 0, scale: 0.94, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 12 }}
@@ -143,7 +146,7 @@ function ShortcutsModal({ open, onClose, darkMode }) {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Command size={16} className="text-[#0071E3]" />
-                <h3 className="text-[16px] font-bold tracking-tight">Keyboard Shortcuts</h3>
+                <h3 id="shortcuts-modal-title" className="text-[16px] font-bold tracking-tight">Keyboard Shortcuts</h3>
               </div>
               <button onClick={onClose} className="w-7 h-7 rounded-full flex items-center justify-center hover:bg-gray-500/10 transition-colors">
                 <X size={15} className="opacity-50" />
