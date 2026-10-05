@@ -585,7 +585,7 @@ function TodoItem({ todo, onToggle, onDelete, onDuplicate, onTextChange, onNoteC
   }
 
   return (
-    <Reorder.Item value={todo} id={todo.id} as="li" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -16, scale: 0.97 }} transition={SOFT} whileDrag={{ scale: 1.02, boxShadow: '0 8px 28px rgba(0,0,0,0.15)', zIndex: 50 }} layout onHoverStart={() => setHovered(true)} onHoverEnd={() => setHovered(false)} className={`backdrop-blur-sm border rounded-2xl shadow-xs overflow-hidden select-none relative ${darkMode ? 'bg-[#1C1C1E]/90 border-gray-800' : 'bg-white/85 border-gray-200/60'}`} style={{ listStyle: 'none', cursor: 'grab' }}>
+    <Reorder.Item value={todo} id={todo.id} as="li" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -16, scale: 0.97 }} transition={SOFT} whileDrag={{ scale: 1.02, boxShadow: '0 8px 28px rgba(0,0,0,0.15)', zIndex: 50 }} layout onHoverStart={() => setHovered(true)} onHoverEnd={() => setHovered(false)} className={`backdrop-blur-md border rounded-2xl shadow-xs transition-shadow duration-200 overflow-hidden select-none relative ${darkMode ? 'bg-[#1C1C1E]/90 border-gray-800/80 hover:border-gray-700' : 'bg-white/90 border-gray-200/70 hover:border-gray-300'}`} style={{ listStyle: 'none', cursor: 'grab' }}>
       <div className="flex items-start gap-2.5 px-3.5 py-3.5">
         <div className="mt-1 flex items-center justify-center opacity-20 hover:opacity-70 transition-opacity cursor-grab">
           <GripVertical size={13} className={darkMode ? 'text-white' : 'text-[#1D1D1F]'} />
