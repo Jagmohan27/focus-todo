@@ -74,6 +74,7 @@ const TIME_PRESETS = [
 ]
 
 function dueDateLabel(iso, time) {
+  if (!iso) return time ? `Due at ${formatDueTime(time)}` : ''
   const t = todayStr()
   let label = ''
   if (iso === t) label = 'Today'
