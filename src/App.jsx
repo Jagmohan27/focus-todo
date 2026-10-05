@@ -1112,6 +1112,7 @@ export default function App({ user, onLogout }) {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Escape') setSearchQuery('') }}
                 placeholder="Search tasks…"
                 className={`pl-8 pr-7 py-1 rounded-full text-[12.5px] border outline-none focus:border-[#0071E3] transition-all w-32 sm:w-40 ${darkMode ? 'bg-[#1C1C1E] border-gray-800 text-white placeholder:text-white/30' : 'bg-white border-gray-200/80 text-[#1D1D1F] placeholder:text-[#1D1D1F]/30'}`}
               />
