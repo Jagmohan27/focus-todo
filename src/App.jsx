@@ -165,7 +165,7 @@ function ShortcutsModal({ open, onClose, darkMode }) {
   )
 }
 
-function DueBadge({ dueDate, dueTime, completed, onClear, showClear }) {
+const DueBadge = memo(function DueBadge({ dueDate, dueTime, completed, onClear, showClear }) {
   if (!dueDate && !dueTime) return null
   const d = dueDate || todayStr()
   const p = duePriority(d, completed)
@@ -188,7 +188,7 @@ function DueBadge({ dueDate, dueTime, completed, onClear, showClear }) {
       </AnimatePresence>
     </motion.span>
   )
-}
+})
 
 function Checkbox({ checked, onChange, id }) {
   return (
